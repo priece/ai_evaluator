@@ -37,3 +37,8 @@ next-env.d.ts
 # database
 *.db
 *.sqlite
+/data/
+
+# runtime files
+/hls/
+/log/
