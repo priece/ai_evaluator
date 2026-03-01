@@ -1,0 +1,38 @@
+{
+  "name": "ai-evaluator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.3",
+    "next": "14.2.10",
+    "node-red-contrib-node-webcam": "^0.0.3",
+    "node-webcam": "^0.8.2",
+    "react": "^18",
+    "react-dom": "^18",
+    "sql.js": "^1.11.0",
+    "uuid": "^10.0.0",
+    "video.js": "^8.23.7",
+    "webcam": "^3.2.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/sql.js": "^1.4.9",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.12",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.10",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
