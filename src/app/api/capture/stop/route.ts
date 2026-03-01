@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as capture from '@/lib/capture.js';
+const capture = require('@/lib/capture.js');
 
 export async function POST() {
   try {

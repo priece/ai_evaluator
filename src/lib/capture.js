@@ -5,3 +5,4 @@ global.captureState = global.captureState || {
 };
 
 module.exports = global.captureState;
+module.exports.default = global.captureState;

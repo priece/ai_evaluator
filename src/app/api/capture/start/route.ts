@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as capture from '@/lib/capture.js';
+const capture = require('@/lib/capture.js');
 const ffmpeg = require('fluent-ffmpeg');
 import { spawn } from 'child_process';
 import path from 'path';
@@ -45,13 +45,16 @@ export async function POST(request: Request) {
       '-b:v', '1000k',
       '-maxrate', '1500k',
       '-bufsize', '2000k',
+      '-g', '60',           // 关键帧间隔：2秒@30fps
+      '-keyint_min', '60',  // 最小关键帧间隔
+      '-sc_threshold', '0', // 禁用场景切换检测，确保固定GOP
       '-c:a', 'aac',
       '-b:a', '128k',
       '-f', 'hls',
-      '-hls_time', '4',
+      '-hls_time', '2',     // 切片时长2秒
       '-hls_list_size', '10',
-      '-hls_flags', 'delete_segments',
-      '-hls_segment_filename', path.join(hlsDir, 'stream_%03d.ts'),
+      '-hls_flags', 'delete_segments+split_by_time',
+      '-hls_segment_filename', path.join(hlsDir, 'stream_%06d.ts'),
       path.join(hlsDir, 'stream.m3u8')
     ]);
     

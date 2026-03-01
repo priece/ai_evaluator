@@ -42,8 +42,10 @@ export default function ExpertEvaluation() {
       try {
         const res = await fetch('/api/cameras');
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.cameras.length > 0) {
           setCameras(data.cameras);
+          // 自动选择第一个摄像头
+          setSelectedCamera(data.cameras[0].id);
         }
       } catch (error) {
         console.error('获取摄像头列表失败:', error);
