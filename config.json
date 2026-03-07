@@ -1,0 +1,43 @@
+{
+    "screen": {
+        "background": "./public/background/background.png",
+        "motions": [
+            {
+                "id": "1",
+                "image": "./public/motions/motion_1.png"
+            },
+            {
+                "id": "2",
+                "image": "./public/motions/motion_2.png"
+            },
+            {
+                "id": "3",
+                "image": "./public/motions/motion_3.png"
+            },
+            {
+                "id": "4",
+                "image": "./public/motions/motion_4.png"
+            },
+            {
+                "id": "5",
+                "image": "./public/motions/motion_5.png"
+            },
+            {
+                "id": "6",
+                "image": "./public/motions/motion_6.png"
+            },
+            {
+                "id": "7",
+                "image": "./public/motions/motion_7.png"
+            },
+            {
+                "id": "8",
+                "image": "./public/motions/motion_8.png"
+            },
+            {
+                "id": "9",
+                "image": "./public/motions/motion_9.png"
+            }
+        ]
+    }
+}

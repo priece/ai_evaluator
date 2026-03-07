@@ -69,6 +69,7 @@ let rounds: Round[] = [];
 let regularEvaluations: RegularEvaluation[] = [];
 let expertEvaluations: ExpertEvaluation[] = [];
 let cameraConfigs: CameraConfig[] = [];
+let lastPublishedRoundId: string | null = null;
 let isInitialized = false;
 
 // 保存数据到 JSON 文件
@@ -79,7 +80,8 @@ function saveToFile() {
     rounds,
     regularEvaluations,
     expertEvaluations,
-    cameraConfigs
+    cameraConfigs,
+    lastPublishedRoundId
   };
   const dataDir = path.dirname(DB_JSON_FILE);
   if (!fs.existsSync(dataDir)) {
@@ -99,6 +101,7 @@ function loadFromFile() {
       regularEvaluations = data.regularEvaluations || [];
       expertEvaluations = data.expertEvaluations || [];
       cameraConfigs = data.cameraConfigs || [];
+      lastPublishedRoundId = data.lastPublishedRoundId || null;
     } catch (error) {
       logError(`加载数据失败: ${error}`);
       users = [...DEFAULT_USERS];
@@ -107,6 +110,7 @@ function loadFromFile() {
       regularEvaluations = [];
       expertEvaluations = [];
       cameraConfigs = [];
+      lastPublishedRoundId = null;
     }
   }
 }
@@ -300,13 +304,23 @@ export const endRound = async (roundId: string): Promise<{ round: Round; session
 export const publishRound = async (roundId: string): Promise<Round> => {
   ensureDb();
   const round = rounds.find(r => r.id === roundId);
-  
+
   if (round) {
     round.submit = 1;
+    lastPublishedRoundId = roundId;
     saveToFile();
   }
-  
+
   return round!;
+};
+
+// 获取最后一次发布的轮次
+export const getLastPublishedRound = async (): Promise<Round | null> => {
+  ensureDb();
+  if (!lastPublishedRoundId) {
+    return null;
+  }
+  return rounds.find(r => r.id === lastPublishedRoundId) || null;
 };
 
 // 常规评估

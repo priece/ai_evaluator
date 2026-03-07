@@ -199,12 +199,20 @@ export default function BusinessPanel({
       <div className="bg-white rounded-lg shadow-md p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-800">场次管理</h2>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            新建场次
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.open('/screen', '_blank', 'width=1920,height=1080')}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
+            >
+              跳转大屏
+            </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              新建场次
+            </button>
+          </div>
         </div>
 
         <select

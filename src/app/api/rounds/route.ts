@@ -15,8 +15,22 @@ import {
 import { logError } from '@/lib/logger';
 
 function generateNormalScore(): number {
+  // 要求：
+  // 1. 必须大于 1，不超过 9.9
+  // 2. 均值为 7
+  // 3. 二西格玛值在 9.5（即 P(X <= 9.5) ≈ 0.95）
+  // 4. 正态分布
+  
+  const minScore = 1;
+  const maxScore = 9.9;
   const mean = 7.0;
-  const sigma = 1.35;
+  const twoSigmaValue = 9.5;
+  
+  // 根据二西格玛值计算标准差
+  // P(X <= 9.5) = 0.95，对应 Z = 1.645
+  // 9.5 = mean + 1.645 * sigma
+  // sigma = (9.5 - 7.0) / 1.645 ≈ 1.52
+  const sigma = (twoSigmaValue - mean) / 1.645; // ≈ 1.52
   
   let u1 = Math.random();
   let u2 = Math.random();
@@ -25,7 +39,8 @@ function generateNormalScore(): number {
   const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   let score = mean + z * sigma;
   
-  score = Math.max(0, Math.min(10, score));
+  // 限制在 1 到 9.9 之间
+  score = Math.max(minScore, Math.min(maxScore, score));
   
   return Math.round(score * 10) / 10;
 }
