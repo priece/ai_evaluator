@@ -7,7 +7,6 @@ interface Session {
   id: string;
   session_id: string;
   name: string;
-  current_round: number;
   created_at: string;
 }
 
@@ -23,20 +22,25 @@ interface Round {
   evaluation_end_time: string | null;
   round_end_time: string | null;
   score: number | null;
+  submit: number;
 }
 
 interface BusinessPanelProps {
   selectedSession: Session | null;
   currentRound: Round | null;
+  highlightRound: Round | null;
   onSessionChange: (session: Session | null) => void;
   onRoundChange: (round: Round | null) => void;
+  onRoundUpdate: (round: Round) => void;
 }
 
 export default function BusinessPanel({ 
   selectedSession, 
-  currentRound, 
+  currentRound,
+  highlightRound,
   onSessionChange, 
-  onRoundChange
+  onRoundChange,
+  onRoundUpdate
 }: BusinessPanelProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -74,6 +78,12 @@ export default function BusinessPanel({
       const data = await res.json();
       if (data.success) {
         setRounds(data.rounds);
+        if (highlightRound) {
+          const matchedRound = data.rounds.find((r: Round) => r.id === highlightRound.id);
+          if (matchedRound) {
+            onRoundChange(matchedRound);
+          }
+        }
       }
     } catch (error) {
       console.error('获取轮次列表失败:', error);
@@ -109,7 +119,8 @@ export default function BusinessPanel({
       return;
     }
     try {
-      const newRoundNumber = selectedSession.current_round + 1;
+      const maxRound = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0;
+      const newRoundNumber = maxRound + 1;
       const res = await fetch('/api/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,9 +132,10 @@ export default function BusinessPanel({
       });
       const data = await res.json();
       if (data.success) {
-        fetchRounds(selectedSession.session_id);
-        fetchSessions();
-        onRoundChange(data.round);
+        await fetchRounds(selectedSession.session_id);
+        await fetchSessions();
+        const newRound = data.round;
+        onRoundUpdate(newRound);
         if (data.session) {
           onSessionChange(data.session);
         }
@@ -154,7 +166,7 @@ export default function BusinessPanel({
           fetchRounds(selectedSession.session_id);
           fetchSessions();
           const updatedRound = data.round;
-          if (updatedRound && currentRound?.id === updatedRound.id) {
+          if (updatedRound) {
             onRoundChange(updatedRound);
           }
           if (action === 'endRound' && data.session) {
@@ -200,16 +212,19 @@ export default function BusinessPanel({
           onChange={(e) => {
             const session = sessions.find(s => s.session_id === e.target.value);
             onSessionChange(session || null);
-            onRoundChange(null);
           }}
           className="w-full border rounded-lg px-3 py-2"
         >
           <option value="">请选择场次</option>
-          {sessions.map((s) => (
-            <option key={s.session_id} value={s.session_id}>
-              {s.name} (当前轮次: {s.current_round})
-            </option>
-          ))}
+          {sessions.map((s) => {
+            const sessionRounds = s.session_id === selectedSession?.session_id ? rounds : [];
+            const totalRound = sessionRounds.length > 0 ? Math.max(...sessionRounds.map(r => r.round_number)) : 0;
+            return (
+              <option key={s.session_id} value={s.session_id}>
+                {s.name} (共 {totalRound} 轮)
+              </option>
+            );
+          })}
         </select>
 
         {selectedSession && (
@@ -218,7 +233,7 @@ export default function BusinessPanel({
               <span className="font-medium">场次名称：</span>{selectedSession.name}
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">当前轮次：</span>{selectedSession.current_round}
+              <span className="font-medium">当前轮次：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
             </div>
             <div className="text-sm text-gray-600 mt-1">
               <span className="font-medium">创建时间：</span>{selectedSession.created_at}
@@ -232,11 +247,12 @@ export default function BusinessPanel({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-800">轮次管理</h2>
           {selectedSession && (() => {
+            const maxRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0;
             let canCreateRound = false;
-            if (selectedSession.current_round === 0) {
+            if (maxRoundNum === 0) {
               canCreateRound = true;
             } else {
-              const currentRoundData = rounds.find(r => r.round_number === selectedSession.current_round);
+              const currentRoundData = rounds.find(r => r.round_number === maxRoundNum);
               canCreateRound = currentRoundData?.status === RoundStatus.ROUND_ENDED;
             }
             return (
@@ -261,7 +277,7 @@ export default function BusinessPanel({
               <div 
                 key={round.id} 
                 className={`border rounded-lg p-3 cursor-pointer transition ${
-                  currentRound?.id === round.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                  highlightRound?.id === round.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                 }`}
                 onClick={() => onRoundChange(round)}
               >
@@ -271,6 +287,16 @@ export default function BusinessPanel({
                     <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${getStatusBadgeClass(round.status)}`}>
                       {RoundStatusLabels[round.status as RoundStatus]}
                     </span>
+                    {round.submit === 1 && (
+                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800">
+                        已发布
+                      </span>
+                    )}
+                    {round.submit === 0 && (
+                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                        未发布
+                      </span>
+                    )}
                   </div>
                   {round.score !== null && (
                     <span className="text-lg font-bold text-blue-600">{round.score} 分</span>
@@ -326,6 +352,14 @@ export default function BusinessPanel({
                         结束本轮
                       </button>
                     </>
+                  )}
+                  {round.status === RoundStatus.ROUND_ENDED && highlightRound?.id === round.id && round.submit === 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); }}
+                      className="px-3 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                    >
+                      发布
+                    </button>
                   )}
                 </div>
               </div>

@@ -9,6 +9,7 @@ import {
   startEvaluation,
   endEvaluation,
   endRound,
+  publishRound,
   updateRound
 } from '@/lib/db';
 import { logError } from '@/lib/logger';
@@ -132,6 +133,16 @@ export async function POST(request: Request) {
         }
         const endResult = await endRound(roundId);
         return NextResponse.json({ success: true, round: endResult.round, session: endResult.session });
+        
+      case 'publish':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        const publishedRound = await publishRound(roundId);
+        return NextResponse.json({ success: true, round: publishedRound });
         
       default:
         return NextResponse.json(

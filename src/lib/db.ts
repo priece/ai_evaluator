@@ -14,7 +14,6 @@ export interface Session {
   id: string;
   session_id: string;
   name: string;
-  current_round: number;
   created_at: string;
 }
 
@@ -30,6 +29,7 @@ export interface Round {
   evaluation_end_time: string | null;
   round_end_time: string | null;
   score: number | null;
+  submit: number;
 }
 
 export interface RegularEvaluation {
@@ -147,7 +147,6 @@ export const createSession = async (name: string): Promise<Session> => {
     id, 
     session_id: sessionId, 
     name, 
-    current_round: 0,
     created_at: createdAt 
   };
   sessions.push(session);
@@ -163,15 +162,6 @@ export const getSession = async (sessionId: string): Promise<Session | undefined
 export const getAllSessions = async (): Promise<Session[]> => {
   ensureDb();
   return [...sessions].reverse();
-};
-
-export const updateSessionCurrentRound = async (sessionId: string, currentRound: number): Promise<void> => {
-  ensureDb();
-  const session = sessions.find(s => s.session_id === sessionId);
-  if (session) {
-    session.current_round = currentRound;
-    saveToFile();
-  }
 };
 
 export const updateSessionName = async (sessionId: string, name: string): Promise<void> => {
@@ -199,14 +189,14 @@ export const createRound = async (sessionId: string, roundNumber: number): Promi
     evaluation_start_time: null,
     evaluation_end_time: null,
     round_end_time: null,
-    score: null
+    score: null,
+    submit: 0
   };
   rounds.push(round);
   
   let updatedSession: Session | null = null;
   const session = sessions.find(s => s.session_id === sessionId);
-  if (session && roundNumber > session.current_round) {
-    session.current_round = roundNumber;
+  if (session) {
     updatedSession = session;
   }
   
@@ -305,6 +295,18 @@ export const endRound = async (roundId: string): Promise<{ round: Round; session
   }
   
   return { round: round!, session: updatedSession };
+};
+
+export const publishRound = async (roundId: string): Promise<Round> => {
+  ensureDb();
+  const round = rounds.find(r => r.id === roundId);
+  
+  if (round) {
+    round.submit = 1;
+    saveToFile();
+  }
+  
+  return round!;
 };
 
 // 常规评估

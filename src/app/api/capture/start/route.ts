@@ -62,10 +62,13 @@ export async function POST(request: Request) {
     }
     
     if (transpose > 0) {
-      ffmpegArgs.push('-vf', `transpose=${transpose}`);
+      ffmpegArgs.push('-vf', `transpose=${transpose},scale=1280:720`);
+    } else {
+      ffmpegArgs.push('-vf', 'scale=1280:720');
     }
     
     ffmpegArgs.push(
+      '-aspect', '16:9',
       '-c:v', 'libx264',
       '-preset', 'ultrafast',
       '-tune', 'zerolatency',

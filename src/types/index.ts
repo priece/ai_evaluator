@@ -11,7 +11,6 @@ export interface Session {
   id: string;
   session_id: string;
   name: string;
-  current_round: number;
   created_at: string;
 }
 
@@ -27,6 +26,7 @@ export interface Round {
   evaluation_end_time: string | null;
   round_end_time: string | null;
   score: number | null;
+  submit: number;
 }
 
 export enum RoundStatus {
