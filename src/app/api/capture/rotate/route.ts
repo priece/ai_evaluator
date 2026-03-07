@@ -32,6 +32,12 @@ export async function POST(request: Request) {
     
     if (capture.ffmpegProcess && capture.activeCameraId) {
       console.log('正在重启 ffmpeg 以应用旋转...');
+      console.log('当前 ffmpeg pid:', capture.ffmpegProcess.pid);
+      console.log('activeCameraId:', capture.activeCameraId);
+      console.log('activeAudioId:', capture.activeAudioId);
+      
+      const cameraId = capture.activeCameraId;
+      const audioId = capture.activeAudioId;
       
       if (process.platform === 'win32') {
         const { exec } = require('child_process');
@@ -40,14 +46,14 @@ export async function POST(request: Request) {
             console.error('taskkill 失败:', err);
           } else {
             console.log('ffmpeg 进程已停止，准备重启');
-            capture.ffmpegProcess = null;
-            restartCapture(capture.activeCameraId, newRotation);
           }
+          capture.ffmpegProcess = null;
+          restartCapture(cameraId, audioId, newRotation);
         });
       } else {
         capture.ffmpegProcess.kill('SIGTERM');
         capture.ffmpegProcess = null;
-        restartCapture(capture.activeCameraId, newRotation);
+        restartCapture(cameraId, audioId, newRotation);
       }
     }
     
@@ -64,7 +70,9 @@ export async function POST(request: Request) {
   }
 }
 
-function restartCapture(cameraId: string, rotation: number) {
+function restartCapture(cameraId: string, audioId: string | null, rotation: number) {
+  console.log('restartCapture 参数:', { cameraId, audioId, rotation });
+  
   const hlsDir = path.join(process.cwd(), 'hls');
   if (!fs.existsSync(hlsDir)) {
     fs.mkdirSync(hlsDir, { recursive: true });
@@ -89,10 +97,19 @@ function restartCapture(cameraId: string, rotation: number) {
   
   const transpose = transposeMap[rotation] || 0;
   
-  const ffmpegArgs = [
-    '-f', 'dshow',
-    '-i', `video=${cameraId}`,
-  ];
+  const ffmpegArgs: string[] = [];
+  
+  if (audioId) {
+    ffmpegArgs.push(
+      '-f', 'dshow',
+      '-i', `video=${cameraId}:audio=${audioId}`
+    );
+  } else {
+    ffmpegArgs.push(
+      '-f', 'dshow',
+      '-i', `video=${cameraId}`
+    );
+  }
   
   if (transpose > 0) {
     ffmpegArgs.push('-vf', `transpose=${transpose}`);
@@ -109,7 +126,8 @@ function restartCapture(cameraId: string, rotation: number) {
     '-keyint_min', '60',
     '-sc_threshold', '0',
     '-c:a', 'aac',
-    '-b:a', '128k',
+    '-ar', '44100',
+    '-b:a', '64k',
     '-f', 'hls',
     '-hls_time', '2',
     '-hls_list_size', '10',
@@ -118,21 +136,36 @@ function restartCapture(cameraId: string, rotation: number) {
     path.join(hlsDir, 'stream.m3u8')
   );
   
+  console.log('ffmpeg 参数:', ffmpegArgs.join(' '));
+  
   const ffmpegCommand = spawn('ffmpeg', ffmpegArgs);
   
   capture.ffmpegProcess = ffmpegCommand;
+  capture.activeCameraId = cameraId;
+  capture.activeAudioId = audioId;
+  capture.rotation = rotation;
+  
   console.log('ffmpeg 进程已重启:', ffmpegCommand.pid, '旋转角度:', rotation);
   
   ffmpegCommand.stdout.on('data', (data: any) => {
-    console.log(`ffmpeg stdout: ${data}`);
+    console.log(`[ffmpeg] ${data}`);
   });
   
   ffmpegCommand.stderr.on('data', (data: any) => {
-    console.error(`ffmpeg stderr: ${data}`);
+    console.log(`[ffmpeg] ${data}`);
   });
   
   ffmpegCommand.on('close', (code: any) => {
     console.log(`ffmpeg process exited with code ${code}`);
-    capture.ffmpegProcess = null;
+    if (capture.ffmpegProcess === ffmpegCommand) {
+      capture.ffmpegProcess = null;
+    }
+  });
+  
+  ffmpegCommand.on('error', (err: any) => {
+    console.error('ffmpeg 进程错误:', err);
+    if (capture.ffmpegProcess === ffmpegCommand) {
+      capture.ffmpegProcess = null;
+    }
   });
 }

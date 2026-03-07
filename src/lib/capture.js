@@ -3,6 +3,7 @@ global.captureState = global.captureState || {
   captureInterval: null,
   ffmpegProcess: null,
   activeCameraId: null,
+  activeAudioId: null,
   rotation: 0
 };
 

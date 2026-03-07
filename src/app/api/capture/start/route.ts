@@ -7,13 +7,21 @@ import { getCameraConfig, saveCameraConfig } from '@/lib/db';
 
 export async function POST(request: Request) {
   try {
-    const { cameraId } = await request.json();
+    const { cameraId, audioId } = await request.json();
     if (!cameraId) {
       return NextResponse.json({ success: false, message: '缺少摄像头ID' }, { status: 400 });
     }
     
+    console.log('开始采集请求:', { cameraId, audioId });
+    console.log('当前状态:', {
+      ffmpegProcess: capture.ffmpegProcess ? capture.ffmpegProcess.pid : 'null',
+      activeCameraId: capture.activeCameraId,
+      activeAudioId: capture.activeAudioId,
+      rotation: capture.rotation
+    });
+    
     if (capture.ffmpegProcess) {
-      console.log('ffmpeg 进程已经在运行，不需要启动新进程');
+      console.log('ffmpeg 进程已经在运行，pid:', capture.ffmpegProcess.pid);
       return NextResponse.json({ success: true, message: 'ffmpeg 进程已经在运行' });
     }
     
@@ -34,7 +42,6 @@ export async function POST(request: Request) {
     
     const savedConfig = await getCameraConfig(cameraId);
     const rotation = savedConfig?.rotation || 0;
-    capture.rotation = rotation;
     
     const transposeMap: Record<number, number> = {
       0: 0,
@@ -44,10 +51,19 @@ export async function POST(request: Request) {
     };
     const transpose = transposeMap[rotation] || 0;
     
-    const ffmpegArgs: string[] = [
-      '-f', 'dshow',
-      '-i', `video=${cameraId}`,
-    ];
+    const ffmpegArgs: string[] = [];
+    
+    if (audioId) {
+      ffmpegArgs.push(
+        '-f', 'dshow',
+        '-i', `video=${cameraId}:audio=${audioId}`
+      );
+    } else {
+      ffmpegArgs.push(
+        '-f', 'dshow',
+        '-i', `video=${cameraId}`
+      );
+    }
     
     if (transpose > 0) {
       ffmpegArgs.push('-vf', `transpose=${transpose}`);
@@ -64,7 +80,8 @@ export async function POST(request: Request) {
       '-keyint_min', '60',
       '-sc_threshold', '0',
       '-c:a', 'aac',
-      '-b:a', '128k',
+      '-ar', '44100',
+      '-b:a', '64k',
       '-f', 'hls',
       '-hls_time', '2',
       '-hls_list_size', '10',
@@ -73,23 +90,43 @@ export async function POST(request: Request) {
       path.join(hlsDir, 'stream.m3u8')
     );
     
+    console.log('ffmpeg 参数:', ffmpegArgs.join(' '));
+    
     const ffmpegCommand = spawn('ffmpeg', ffmpegArgs);
     
     capture.ffmpegProcess = ffmpegCommand;
     capture.activeCameraId = cameraId;
-    console.log('ffmpeg 进程已启动:', ffmpegCommand.pid, '旋转角度:', rotation);
+    capture.activeAudioId = audioId || null;
+    capture.rotation = rotation;
+    
+    console.log('ffmpeg 进程已启动:', ffmpegCommand.pid);
+    console.log('状态已更新:', {
+      ffmpegProcess: capture.ffmpegProcess ? capture.ffmpegProcess.pid : 'null',
+      activeCameraId: capture.activeCameraId,
+      activeAudioId: capture.activeAudioId,
+      rotation: capture.rotation
+    });
     
     ffmpegCommand.stdout.on('data', (data: any) => {
-      console.log(`ffmpeg stdout: ${data}`);
+      console.log(`[ffmpeg] ${data}`);
     });
     
     ffmpegCommand.stderr.on('data', (data: any) => {
-      console.error(`ffmpeg stderr: ${data}`);
+      console.log(`[ffmpeg] ${data}`);
     });
     
     ffmpegCommand.on('close', (code: any) => {
       console.log(`ffmpeg process exited with code ${code}`);
-      capture.ffmpegProcess = null;
+      if (capture.ffmpegProcess === ffmpegCommand) {
+        capture.ffmpegProcess = null;
+      }
+    });
+    
+    ffmpegCommand.on('error', (err: any) => {
+      console.error('ffmpeg 进程错误:', err);
+      if (capture.ffmpegProcess === ffmpegCommand) {
+        capture.ffmpegProcess = null;
+      }
     });
     
     return NextResponse.json({ success: true, message: '开始采集成功', rotation });
