@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { saveCameraConfig } from '@/lib/db';
+import { logInfo, logError } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -23,18 +24,18 @@ export async function POST(request: Request) {
     }
     
     capture.rotation = newRotation;
-    console.log(`旋转角度: ${currentRotation} -> ${newRotation}`);
+    logInfo(`旋转角度: ${currentRotation} -> ${newRotation}`);
     
     if (capture.activeCameraId) {
       await saveCameraConfig(capture.activeCameraId, newRotation);
-      console.log(`已保存摄像头 ${capture.activeCameraId} 的旋转配置: ${newRotation}`);
+      logInfo(`已保存摄像头 ${capture.activeCameraId} 的旋转配置: ${newRotation}`);
     }
     
     if (capture.ffmpegProcess && capture.activeCameraId) {
-      console.log('正在重启 ffmpeg 以应用旋转...');
-      console.log('当前 ffmpeg pid:', capture.ffmpegProcess.pid);
-      console.log('activeCameraId:', capture.activeCameraId);
-      console.log('activeAudioId:', capture.activeAudioId);
+      logInfo('正在重启 ffmpeg 以应用旋转...');
+      logInfo(`当前 ffmpeg pid: ${capture.ffmpegProcess.pid}`);
+      logInfo(`activeCameraId: ${capture.activeCameraId}`);
+      logInfo(`activeAudioId: ${capture.activeAudioId}`);
       
       const cameraId = capture.activeCameraId;
       const audioId = capture.activeAudioId;
@@ -43,9 +44,9 @@ export async function POST(request: Request) {
         const { exec } = require('child_process');
         exec(`taskkill /pid ${capture.ffmpegProcess.pid} /T /F`, (err: any) => {
           if (err) {
-            console.error('taskkill 失败:', err);
+            logError(`taskkill 失败: ${err}`);
           } else {
-            console.log('ffmpeg 进程已停止，准备重启');
+            logInfo('ffmpeg 进程已停止，准备重启');
           }
           capture.ffmpegProcess = null;
           restartCapture(cameraId, audioId, newRotation);
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
       rotation: newRotation 
     });
   } catch (error) {
-    console.error('旋转失败:', error);
+    logError(`旋转失败: ${error}`);
     return NextResponse.json({ 
       success: false, 
       message: '旋转失败' 
@@ -71,20 +72,20 @@ export async function POST(request: Request) {
 }
 
 function restartCapture(cameraId: string, audioId: string | null, rotation: number) {
-  console.log('restartCapture 参数:', { cameraId, audioId, rotation });
+  logInfo(`restartCapture 参数: cameraId=${cameraId}, audioId=${audioId}, rotation=${rotation}`);
   
   const hlsDir = path.join(process.cwd(), 'hls');
   if (!fs.existsSync(hlsDir)) {
     fs.mkdirSync(hlsDir, { recursive: true });
   }
   
-  console.log('清理 hls 目录...');
+  logInfo('清理 hls 目录...');
   const files = fs.readdirSync(hlsDir);
   for (const file of files) {
     if (file.endsWith('.ts') || file.endsWith('.m3u8') || file.endsWith('.m3u8.tmp')) {
       const filePath = path.join(hlsDir, file);
       fs.unlinkSync(filePath);
-      console.log(`删除文件: ${file}`);
+      logInfo(`删除文件: ${file}`);
     }
   }
   
@@ -136,7 +137,7 @@ function restartCapture(cameraId: string, audioId: string | null, rotation: numb
     path.join(hlsDir, 'stream.m3u8')
   );
   
-  console.log('ffmpeg 参数:', ffmpegArgs.join(' '));
+  logInfo(`ffmpeg 参数: ${ffmpegArgs.join(' ')}`);
   
   const ffmpegCommand = spawn('ffmpeg', ffmpegArgs);
   
@@ -145,25 +146,25 @@ function restartCapture(cameraId: string, audioId: string | null, rotation: numb
   capture.activeAudioId = audioId;
   capture.rotation = rotation;
   
-  console.log('ffmpeg 进程已重启:', ffmpegCommand.pid, '旋转角度:', rotation);
+  logInfo(`ffmpeg 进程已重启: ${ffmpegCommand.pid}, 旋转角度: ${rotation}`);
   
   ffmpegCommand.stdout.on('data', (data: any) => {
-    console.log(`[ffmpeg] ${data}`);
+    logInfo(`[ffmpeg] ${data}`);
   });
   
   ffmpegCommand.stderr.on('data', (data: any) => {
-    console.log(`[ffmpeg] ${data}`);
+    logInfo(`[ffmpeg] ${data}`);
   });
   
   ffmpegCommand.on('close', (code: any) => {
-    console.log(`ffmpeg process exited with code ${code}`);
+    logInfo(`ffmpeg process exited with code ${code}`);
     if (capture.ffmpegProcess === ffmpegCommand) {
       capture.ffmpegProcess = null;
     }
   });
   
   ffmpegCommand.on('error', (err: any) => {
-    console.error('ffmpeg 进程错误:', err);
+    logError(`ffmpeg 进程错误: ${err}`);
     if (capture.ffmpegProcess === ffmpegCommand) {
       capture.ffmpegProcess = null;
     }

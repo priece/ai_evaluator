@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createExpertEvaluation, getAllExpertEvaluations, getExpertEvaluationsBySession } from '@/lib/db';
+import { logError } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     const evaluation = await createExpertEvaluation(sessionId, round, expertScore);
     return NextResponse.json({ success: true, evaluation });
   } catch (error) {
-    console.error('提交专家评估失败:', error);
+    logError(`提交专家评估失败: ${error}`);
     return NextResponse.json({ success: false, message: '提交专家评估失败' }, { status: 500 });
   }
 }
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({ success: true, evaluations });
   } catch (error) {
-    console.error('获取专家评估结果失败:', error);
+    logError(`获取专家评估结果失败: ${error}`);
     return NextResponse.json({ success: false, message: '获取专家评估结果失败' }, { status: 500 });
   }
 }

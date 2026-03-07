@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { logError } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
     const user = JSON.parse(authUser.value);
     return NextResponse.json({ success: true, user });
   } catch (error) {
-    console.error('检查登录状态失败:', error);
+    logError(`检查登录状态失败: ${error}`);
     return NextResponse.json({ success: false, user: null });
   }
 }

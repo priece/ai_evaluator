@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import VideoMonitor from '@/components/VideoMonitor';
 import BusinessPanel from '@/components/BusinessPanel';
 
@@ -18,6 +18,10 @@ interface MainContentProps {
 export default function MainContent({ user, onLogout }: MainContentProps) {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [currentRound, setCurrentRound] = useState<any>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const logPollingRef = useRef<NodeJS.Timeout | null>(null);
+  const logContainerRef = useRef<HTMLDivElement>(null);
+  const lastLogTimeRef = useRef<string | null>(null);
 
   const handleSessionChange = (session: any) => {
     setSelectedSession(session);
@@ -27,6 +31,49 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
   const handleRoundChange = (round: any) => {
     setCurrentRound(round);
   };
+
+  const fetchLogs = async () => {
+    try {
+      let url = '/api/logs';
+      if (lastLogTimeRef.current) {
+        url += `?from=${encodeURIComponent(lastLogTimeRef.current)}`;
+      }
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && data.logs) {
+        if (data.logs.length > 0) {
+          setLogs(prev => [...prev, ...data.logs]);
+          
+          const lastLog = data.logs[data.logs.length - 1];
+          const match = lastLog.match(/\[([^\]]+)\]/);
+          if (match) {
+            lastLogTimeRef.current = match[1];
+          }
+        }
+      }
+    } catch (error) {
+      console.error('获取日志失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    logPollingRef.current = setInterval(fetchLogs, 2000);
+    
+    return () => {
+      if (logPollingRef.current) {
+        clearInterval(logPollingRef.current);
+        logPollingRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -48,10 +95,10 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         </div>
       </nav>
 
-      {/* 主内容区域 - 左右布局 */}
+      {/* 主内容区域 - 三列布局 */}
       <main className="flex-1 flex overflow-hidden">
         {/* 左侧：视频监看区域 */}
-        <div className="w-1/2 p-4 border-r border-gray-200">
+        <div className="w-2/5 p-4 border-r border-gray-200">
           <VideoMonitor 
             selectedSession={selectedSession}
             currentRound={currentRound}
@@ -59,14 +106,32 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
           />
         </div>
 
-        {/* 右侧：业务区域 */}
-        <div className="w-1/2 p-4 overflow-auto">
+        {/* 中间：场次管理区域 */}
+        <div className="w-2/5 p-4 overflow-auto border-r border-gray-200">
           <BusinessPanel 
             selectedSession={selectedSession}
             currentRound={currentRound}
             onSessionChange={handleSessionChange}
             onRoundChange={handleRoundChange}
           />
+        </div>
+
+        {/* 右侧：系统日志区域 */}
+        <div className="w-1/5 p-4 overflow-hidden flex flex-col">
+          <div 
+            ref={logContainerRef}
+            className="flex-1 bg-gray-900 rounded-lg p-3 overflow-y-auto font-mono text-xs text-gray-300"
+          >
+            {logs.length === 0 ? (
+              <div className="text-gray-500">暂无日志</div>
+            ) : (
+              logs.map((log, index) => (
+                <div key={index} className="whitespace-pre-wrap break-all py-0.5">
+                  {log}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </main>
     </div>

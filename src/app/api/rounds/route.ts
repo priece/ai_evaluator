@@ -11,6 +11,7 @@ import {
   endRound,
   updateRound
 } from '@/lib/db';
+import { logError } from '@/lib/logger';
 
 function generateNormalScore(): number {
   const mean = 7.0;
@@ -139,7 +140,7 @@ export async function POST(request: Request) {
         );
     }
   } catch (error) {
-    console.error('轮次操作失败:', error);
+    logError(`轮次操作失败: ${error}`);
     return NextResponse.json(
       { success: false, message: '操作失败' },
       { status: 500 }
@@ -162,7 +163,7 @@ export async function GET(request: Request) {
     const rounds = await getRoundsBySession(sessionId);
     return NextResponse.json({ success: true, rounds });
   } catch (error) {
-    console.error('获取轮次失败:', error);
+    logError(`获取轮次失败: ${error}`);
     return NextResponse.json(
       { success: false, message: '获取轮次失败' },
       { status: 500 }

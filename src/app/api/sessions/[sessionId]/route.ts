@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession, updateSessionName, getRegularEvaluationsBySession, getExpertEvaluationsBySession } from '@/lib/db';
+import { logError } from '@/lib/logger';
 
 export async function GET(request: Request, { params }: { params: { sessionId: string } }) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: Request, { params }: { params: { sessionId: s
     const expertEvaluations = await getExpertEvaluationsBySession(sessionId);
     return NextResponse.json({ success: true, session, regularEvaluations, expertEvaluations });
   } catch (error) {
-    console.error('获取场次信息失败:', error);
+    logError(`获取场次信息失败: ${error}`);
     return NextResponse.json({ success: false, message: '获取场次信息失败' }, { status: 500 });
   }
 }
@@ -27,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: { sessionId: s
     await updateSessionName(sessionId, name);
     return NextResponse.json({ success: true, message: '更新场名成功' });
   } catch (error) {
-    console.error('更新场名失败:', error);
+    logError(`更新场名失败: ${error}`);
     return NextResponse.json({ success: false, message: '更新场名失败' }, { status: 500 });
   }
 }

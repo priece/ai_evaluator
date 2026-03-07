@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/lib/db';
+import { logError } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     
     return response;
   } catch (error) {
-    console.error('登录失败:', error);
+    logError(`登录失败: ${error}`);
     return NextResponse.json(
       { success: false, message: '登录失败' },
       { status: 500 }

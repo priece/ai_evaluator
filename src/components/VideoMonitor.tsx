@@ -213,8 +213,8 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         <h2 className="text-lg font-semibold text-gray-800">视频监看</h2>
       </div>
       
-      <div className="p-4 space-y-4 flex-1 flex flex-col">
-        <div className="flex items-center space-x-4">
+      <div className="p-4 flex-1 flex flex-col overflow-hidden">
+        <div className="flex items-center space-x-4 mb-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">选择摄像头</label>
             <select
@@ -249,7 +249,7 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
           </div>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mb-4">
           <button
             onClick={startCapture}
             disabled={isCapturing || !selectedCamera}
@@ -282,9 +282,11 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
           </button>
         </div>
 
-        <div className="flex-1 bg-black rounded-lg overflow-hidden flex items-center justify-center">
-          <div data-vjs-player className="w-full h-full">
-            <div ref={videoRef} />
+        <div className="flex-1">
+          <div className="w-full h-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+            <div data-vjs-player className="w-full h-full">
+              <div ref={videoRef} className="w-full h-full" />
+            </div>
           </div>
         </div>
       </div>

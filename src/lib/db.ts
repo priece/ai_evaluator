@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
+import { logError } from './logger';
 
 export interface User {
   id: string;
@@ -99,7 +100,7 @@ function loadFromFile() {
       expertEvaluations = data.expertEvaluations || [];
       cameraConfigs = data.cameraConfigs || [];
     } catch (error) {
-      console.error('加载数据失败:', error);
+      logError(`加载数据失败: ${error}`);
       users = [...DEFAULT_USERS];
       sessions = [];
       rounds = [];
@@ -169,6 +170,15 @@ export const updateSessionCurrentRound = async (sessionId: string, currentRound:
   const session = sessions.find(s => s.session_id === sessionId);
   if (session) {
     session.current_round = currentRound;
+    saveToFile();
+  }
+};
+
+export const updateSessionName = async (sessionId: string, name: string): Promise<void> => {
+  ensureDb();
+  const session = sessions.find(s => s.session_id === sessionId);
+  if (session) {
+    session.name = name;
     saveToFile();
   }
 };

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { spawnSync } from 'child_process';
 const capture = require('@/lib/capture.js');
+import { logInfo, logError } from '@/lib/logger';
 
 export async function GET() {
   try {
-    console.log('[API] Fetching device list');
+    logInfo('[API] Fetching device list');
     
     const result = spawnSync('ffmpeg', ['-list_devices', 'true', '-f', 'dshow', '-i', 'dummy']);
     const output = result.stderr.toString();
@@ -12,21 +13,21 @@ export async function GET() {
     const cameras: { id: string; name: string }[] = [];
     const audioDevices: { id: string; name: string }[] = [];
     
-    console.log('=== ffmpeg output ===');
+    logInfo('=== ffmpeg output ===');
     const lines = output.split('\n');
     for (const line of lines) {
       if (line.includes('(video)') || line.includes('(audio)')) {
-        console.log('Device:', line);
+        logInfo(`Device: ${line}`);
       }
     }
-    console.log('=== end ===');
+    logInfo('=== end ===');
     
     for (const line of lines) {
       if (line.includes('(video)')) {
         const match = line.match(/"(.+?)"\s+\(video\)/);
         if (match && match[1]) {
           const deviceName = match[1].trim();
-          console.log('Found camera:', deviceName);
+          logInfo(`Found camera: ${deviceName}`);
           cameras.push({ 
             id: deviceName, 
             name: `摄像头: ${deviceName}` 
@@ -36,7 +37,7 @@ export async function GET() {
         const match = line.match(/"(.+?)"\s+\(audio\)/);
         if (match && match[1]) {
           const deviceName = match[1].trim();
-          console.log('Found audio:', deviceName);
+          logInfo(`Found audio: ${deviceName}`);
           audioDevices.push({ 
             id: deviceName, 
             name: `音频: ${deviceName}` 
@@ -45,17 +46,17 @@ export async function GET() {
       }
     }
     
-    console.log('Cameras found:', cameras);
-    console.log('Audio devices found:', audioDevices);
+    logInfo(`Cameras found: ${cameras.length}`);
+    logInfo(`Audio devices found: ${audioDevices.length}`);
     
     if (cameras.length === 0) {
       cameras.push({ id: '', name: '未检测到摄像头设备' });
-      console.log('No cameras detected');
+      logInfo('No cameras detected');
     }
     
     if (audioDevices.length === 0) {
       audioDevices.push({ id: '', name: '未检测到音频设备' });
-      console.log('No audio devices detected');
+      logInfo('No audio devices detected');
     }
     
     const activeCameraId = capture.activeCameraId || null;
@@ -73,7 +74,7 @@ export async function GET() {
       rotation
     });
   } catch (error) {
-    console.error('Failed to get device list:', error);
+    logError(`Failed to get device list: ${error}`);
     return NextResponse.json({ 
       success: true, 
       cameras: [{ id: '', name: '获取摄像头列表失败' }],
