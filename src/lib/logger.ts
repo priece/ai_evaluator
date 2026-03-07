@@ -33,9 +33,32 @@ function formatTimestamp(): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
+let currentLogFile: string = '';
+let currentHour: string = '';
+
 function writeToFile(logLine: string): void {
   try {
-    const logPath = path.join(process.cwd(), 'server.log');
+    const logsDir = path.join(process.cwd(), 'logs');
+    
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    if (currentHour !== hours) {
+      currentHour = hours;
+      currentLogFile = `server-${year}${month}${day}-${hours}${minutes}${seconds}.log`;
+    }
+    
+    const logPath = path.join(logsDir, currentLogFile);
+    
     fs.appendFileSync(logPath, logLine + '\n', 'utf-8');
   } catch (error) {
     console.error('写入日志文件失败:', error);

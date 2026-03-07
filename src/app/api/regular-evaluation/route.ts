@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createRegularEvaluation, getAllRegularEvaluations, getRegularEvaluationsBySession } from '@/lib/db';
+import { logError } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     const evaluation = await createRegularEvaluation(sessionId, round, score);
     return NextResponse.json({ success: true, evaluation });
   } catch (error) {
-    console.error('提交常规评估失败:', error);
+    logError(`提交常规评估失败: ${error}`);
     return NextResponse.json({ success: false, message: '提交常规评估失败' }, { status: 500 });
   }
 }
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({ success: true, evaluations });
   } catch (error) {
-    console.error('获取常规评估结果失败:', error);
+    logError(`获取常规评估结果失败: ${error}`);
     return NextResponse.json({ success: false, message: '获取常规评估结果失败' }, { status: 500 });
   }
 }

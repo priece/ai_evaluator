@@ -283,7 +283,7 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         </div>
 
         <div className="flex-1">
-          <div className="w-full h-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+          <div className="w-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             <div data-vjs-player className="w-full h-full">
               <div ref={videoRef} className="w-full h-full" />
             </div>

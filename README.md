@@ -11,6 +11,7 @@
 - **场次管理**：支持新建场次、加载历史场次，自动计算轮次
 - **评估记录**：记录每次评估的场次、轮次、评估值和时间
 - **数据存储**：使用 JSON 文件存储评估数据（`data/database.json`）
+- **自定义日志系统**：支持文件和内存日志，保留30条最新日志
 - **生产部署**：支持一键打包部署
 
 ## 技术栈
@@ -30,21 +31,28 @@ ai_evaluator/
 ├── src/
 │   ├── app/                    # Next.js 应用目录
 │   │   ├── api/                # API 路由
+│   │   │   ├── auth/           # 认证接口
 │   │   │   ├── cameras/        # 摄像头接口
 │   │   │   ├── capture/        # 视频采集接口
 │   │   │   ├── expert-evaluation/  # 专家评估接口
+│   │   │   ├── logs/           # 日志接口
 │   │   │   ├── regular-evaluation/ # 常规评估接口
+│   │   │   ├── rounds/         # 轮次接口
 │   │   │   └── sessions/       # 场次管理接口
 │   │   ├── layout.tsx          # 根布局
 │   │   ├── page.tsx            # 主页面
 │   │   └── globals.css         # 全局样式
 │   ├── components/             # React 组件
+│   │   ├── BusinessPanel.tsx   # 业务面板组件
 │   │   ├── EvaluationRecords.tsx   # 评估记录组件
 │   │   ├── ExpertEvaluation.tsx    # 专家评估组件
-│   │   └── RegularEvaluation.tsx   # 常规评估组件
+│   │   ├── MainContent.tsx     # 主内容组件
+│   │   ├── RegularEvaluation.tsx   # 常规评估组件
+│   │   └── VideoMonitor.tsx    # 视频监看组件
 │   ├── lib/                    # 工具库
 │   │   ├── capture.js          # 视频采集状态管理
-│   │   └── db.ts               # 数据库操作
+│   │   ├── db.ts               # 数据库操作
+│   │   └── logger.ts           # 日志系统
 │   └── types/                  # TypeScript 类型定义
 │       └── index.ts
 ├── data/                       # 数据存储目录（运行时生成）
@@ -90,12 +98,17 @@ ai_evaluator/
 
 ## API 接口
 
+### 认证接口
+- `POST /api/auth/login` - 用户登录
+- `GET /api/auth/check` - 检查登录状态
+
 ### 摄像头接口
 - `GET /api/cameras` - 获取本地摄像头列表
 
 ### 视频采集接口
-- `POST /api/capture/start` - 开始采集（参数：cameraId）
+- `POST /api/capture/start` - 开始采集（参数：cameraId, audioId）
 - `POST /api/capture/stop` - 停止采集
+- `POST /api/capture/rotate` - 旋转视频（参数：direction: 'left' | 'right'）
 
 ### HLS 视频流
 - `/hls/stream.m3u8` - HLS 视频流播放地址
@@ -109,6 +122,13 @@ ai_evaluator/
 - `GET /api/sessions` - 获取所有场次
 - `POST /api/sessions` - 创建新场次
 - `GET /api/sessions/[sessionId]` - 获取指定场次详情及评估记录
+- `PUT /api/sessions/[sessionId]` - 更新场次名称
+
+### 轮次接口
+- `GET /api/rounds?sessionId=xxx` - 获取指定场次的轮次列表
+
+### 日志接口
+- `GET /api/logs` - 获取日志（可选参数：from=时间戳，返回该时间点之后的日志）
 
 ## 安装与运行
 
@@ -176,11 +196,18 @@ package-production.bat
 
 ## 使用说明
 
-### AI评估
-1. 选择摄像头（自动选择第一个可用摄像头）
+### 登录
+1. 访问 http://localhost:3000
+2. 输入用户名和密码（默认：admin/admin）
+
+### 视频监看
+1. 选择摄像头和音频源
 2. 点击"开始采集"启动视频流
-3. 点击"新建场次"创建评估场次
-4. 点击"开始评估"进行 AI 评分
+3. 支持左转/右转90度旋转视频
+
+### AI评估
+1. 点击"新建场次"创建评估场次
+2. 点击"开始评估"进行 AI 评分
 
 ### 专家评估
 1. 进入"专家评估"页面
@@ -191,6 +218,11 @@ package-production.bat
 1. 进入"评估记录"页面
 2. 查看所有历史评估记录
 3. 包含场编号、轮次、评估结果和时间
+
+### 系统日志
+- 实时显示系统运行日志
+- 自动轮询更新（每2秒）
+- 支持滚动查看历史日志
 
 ## 配置说明
 
@@ -211,6 +243,12 @@ NODE_ENV=production          # 运行环境
 - 音频编码：AAC
 - 码率：1000kbps
 
+### 日志配置
+- 日志文件位置：`logs/` 目录
+- 日志文件格式：`server-yyyyMMdd-hhmmss.log`
+- 内存日志：保留30条最新日志
+- 日志级别：INFO、WARN、ERROR、DEBUG
+
 ## 安全设计
 
 ### 前后端分离的数据访问
@@ -225,7 +263,7 @@ NODE_ENV=production          # 运行环境
 
 ## 日志
 
-服务器日志保存在 `logs/server.log` 文件中。
+服务器日志保存在 `logs/` 目录下，文件名格式为 `server-yyyyMMdd-hhmmss.log`。
 
 ## 许可证
 
