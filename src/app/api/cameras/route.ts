@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawnSync } from 'child_process';
+const capture = require('@/lib/capture.js');
 
 export async function GET() {
   try {
@@ -40,12 +41,25 @@ export async function GET() {
       console.log('No cameras detected');
     }
     
-    return NextResponse.json({ success: true, cameras });
+    const activeCameraId = capture.activeCameraId || null;
+    const isCapturing = !!capture.ffmpegProcess;
+    const rotation = capture.rotation || 0;
+    
+    return NextResponse.json({ 
+      success: true, 
+      cameras,
+      activeCameraId,
+      isCapturing,
+      rotation
+    });
   } catch (error) {
     console.error('Failed to get camera list:', error);
     return NextResponse.json({ 
       success: true, 
-      cameras: [{ id: '', name: '获取摄像头列表失败' }] 
+      cameras: [{ id: '', name: '获取摄像头列表失败' }],
+      activeCameraId: null,
+      isCapturing: false,
+      rotation: 0
     });
   }
 }

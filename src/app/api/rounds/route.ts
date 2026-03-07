@@ -1,0 +1,171 @@
+import { NextResponse } from 'next/server';
+import { 
+  createRound, 
+  getRoundsBySession, 
+  getRound, 
+  updateRoundStatus,
+  startPerformance,
+  endPerformance,
+  startEvaluation,
+  endEvaluation,
+  endRound,
+  updateRound
+} from '@/lib/db';
+
+function generateNormalScore(): number {
+  const mean = 7.0;
+  const sigma = 1.35;
+  
+  let u1 = Math.random();
+  let u2 = Math.random();
+  while (u1 === 0) u1 = Math.random();
+  
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  let score = mean + z * sigma;
+  
+  score = Math.max(0, Math.min(10, score));
+  
+  return Math.round(score * 10) / 10;
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { action, sessionId, roundId, roundNumber, status, score } = body;
+    
+    switch (action) {
+      case 'create':
+        if (!sessionId || roundNumber === undefined) {
+          return NextResponse.json(
+            { success: false, message: '缺少必要参数' },
+            { status: 400 }
+          );
+        }
+        const createResult = await createRound(sessionId, roundNumber);
+        return NextResponse.json({ success: true, round: createResult.round, session: createResult.session });
+        
+      case 'getBySession':
+        if (!sessionId) {
+          return NextResponse.json(
+            { success: false, message: '缺少场次ID' },
+            { status: 400 }
+          );
+        }
+        const rounds = await getRoundsBySession(sessionId);
+        return NextResponse.json({ success: true, rounds });
+        
+      case 'get':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        const round = await getRound(roundId);
+        return NextResponse.json({ success: true, round });
+        
+      case 'updateStatus':
+        if (!roundId || status === undefined) {
+          return NextResponse.json(
+            { success: false, message: '缺少必要参数' },
+            { status: 400 }
+          );
+        }
+        await updateRoundStatus(roundId, status);
+        const updatedRound = await getRound(roundId);
+        return NextResponse.json({ success: true, round: updatedRound });
+        
+      case 'startPerformance':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        await startPerformance(roundId);
+        const startedRound = await getRound(roundId);
+        return NextResponse.json({ success: true, round: startedRound });
+        
+      case 'endPerformance':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        await endPerformance(roundId);
+        const endedPerfRound = await getRound(roundId);
+        return NextResponse.json({ success: true, round: endedPerfRound });
+        
+      case 'startEvaluation':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        await startEvaluation(roundId);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const randomScore = generateNormalScore();
+        await endEvaluation(roundId, randomScore);
+        const evalResult = await getRound(roundId);
+        return NextResponse.json({ success: true, round: evalResult });
+        
+      case 'endEvaluation':
+        if (!roundId || score === undefined) {
+          return NextResponse.json(
+            { success: false, message: '缺少必要参数' },
+            { status: 400 }
+          );
+        }
+        await endEvaluation(roundId, score);
+        const endedEvalRound = await getRound(roundId);
+        return NextResponse.json({ success: true, round: endedEvalRound });
+        
+      case 'endRound':
+        if (!roundId) {
+          return NextResponse.json(
+            { success: false, message: '缺少轮次ID' },
+            { status: 400 }
+          );
+        }
+        const endResult = await endRound(roundId);
+        return NextResponse.json({ success: true, round: endResult.round, session: endResult.session });
+        
+      default:
+        return NextResponse.json(
+          { success: false, message: '未知操作' },
+          { status: 400 }
+        );
+    }
+  } catch (error) {
+    console.error('轮次操作失败:', error);
+    return NextResponse.json(
+      { success: false, message: '操作失败' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get('sessionId');
+  
+  if (!sessionId) {
+    return NextResponse.json(
+      { success: false, message: '缺少场次ID' },
+      { status: 400 }
+    );
+  }
+  
+  try {
+    const rounds = await getRoundsBySession(sessionId);
+    return NextResponse.json({ success: true, rounds });
+  } catch (error) {
+    console.error('获取轮次失败:', error);
+    return NextResponse.json(
+      { success: false, message: '获取轮次失败' },
+      { status: 500 }
+    );
+  }
+}

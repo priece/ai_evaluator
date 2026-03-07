@@ -36,6 +36,7 @@ export async function POST() {
       }
       
       capture.ffmpegProcess = null;
+      capture.activeCameraId = null;
       console.log('ffmpeg 进程已停止');
     } else {
       console.log('没有正在运行的 ffmpeg 进程');

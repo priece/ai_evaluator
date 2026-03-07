@@ -62,6 +62,5 @@ echo Deploy steps:
 echo   1. Copy %PACKAGE_DIR% to server
 echo   2. Run: npm ci --only=production
 echo   3. Run: start-production.bat
-echo   Or use PM2: pm2 start ecosystem.config.js
 echo.
 pause
