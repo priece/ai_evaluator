@@ -9,6 +9,15 @@ interface LogEntry {
 
 const MAX_MEMORY_LOGS = 30;
 
+const LOG_LEVELS = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3
+};
+
+const currentLogLevel = LOG_LEVELS[process.env.LOG_LEVEL as keyof typeof LOG_LEVELS] ?? LOG_LEVELS.info;
+
 declare global {
   var logState: {
     memoryLogs: LogEntry[];
@@ -36,9 +45,14 @@ function formatTimestamp(): string {
 let currentLogFile: string = '';
 let currentHour: string = '';
 
+function getLogsDir(): string {
+  const logDir = process.env.LOG_DIR || './logs';
+  return path.resolve(logDir);
+}
+
 function writeToFile(logLine: string): void {
   try {
-    const logsDir = path.join(process.cwd(), 'logs');
+    const logsDir = getLogsDir();
     
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
@@ -80,6 +94,8 @@ function addToMemory(level: string, message: string): void {
 }
 
 export function logInfo(message: string): void {
+  if (currentLogLevel > LOG_LEVELS.info) return;
+  
   const timestamp = formatTimestamp();
   const logLine = `[${timestamp}] [INFO] ${message}`;
   
@@ -89,6 +105,8 @@ export function logInfo(message: string): void {
 }
 
 export function logError(message: string): void {
+  if (currentLogLevel > LOG_LEVELS.error) return;
+  
   const timestamp = formatTimestamp();
   const logLine = `[${timestamp}] [ERROR] ${message}`;
   
@@ -98,6 +116,8 @@ export function logError(message: string): void {
 }
 
 export function logWarn(message: string): void {
+  if (currentLogLevel > LOG_LEVELS.warn) return;
+  
   const timestamp = formatTimestamp();
   const logLine = `[${timestamp}] [WARN] ${message}`;
   
@@ -111,6 +131,8 @@ export function getMemoryLogs(): LogEntry[] {
 }
 
 export function logDebug(message: string): void {
+  if (currentLogLevel > LOG_LEVELS.debug) return;
+  
   const timestamp = formatTimestamp();
   const logLine = `[${timestamp}] [DEBUG] ${message}`;
   

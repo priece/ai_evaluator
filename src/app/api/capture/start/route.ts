@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'ffmpeg 进程已经在运行' });
     }
     
-    const hlsDir = path.join(process.cwd(), 'hls');
+    const hlsDir = process.env.HLS_DIR ? path.resolve(process.env.HLS_DIR) : path.join(process.cwd(), 'hls');
     if (!fs.existsSync(hlsDir)) {
       fs.mkdirSync(hlsDir, { recursive: true });
     }

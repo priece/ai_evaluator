@@ -7,8 +7,13 @@ const path = require('path');
 // 导入 capture 模块，用于管理 ffmpeg 进程
 const capture = require('./src/lib/capture.js');
 
+// 环境变量配置（带默认值）
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+const LOG_DIR = process.env.LOG_DIR || './logs';
+const HLS_DIR = process.env.HLS_DIR || './hls';
+
 // 确保 log 目录存在
-const logDir = path.join(process.cwd(), 'log');
+const logDir = path.resolve(LOG_DIR);
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
@@ -38,6 +43,9 @@ console.error = function(...args) {
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
+
+// HLS 目录路径（使用环境变量）
+const hlsDir = path.resolve(HLS_DIR);
 
 // 停止 ffmpeg 进程的函数
 function stopFFmpeg() {
@@ -85,7 +93,7 @@ app.prepare().then(() => {
     
     // 处理 hls 目录的静态文件
     if (parsedUrl.pathname.startsWith('/hls/')) {
-      const filePath = path.join(process.cwd(), parsedUrl.pathname);
+      const filePath = path.join(hlsDir, parsedUrl.pathname.replace('/hls/', ''));
       fs.readFile(filePath, (err, data) => {
         if (err) {
           res.statusCode = 404;
@@ -106,8 +114,8 @@ app.prepare().then(() => {
     }
   });
 
-  server.listen(3000, (err) => {
+  server.listen(PORT, (err) => {
     if (err) throw err;
-    console.log('> Ready on http://localhost:3000');
+    console.log(`> Ready on http://localhost:${PORT}`);
   });
 });

@@ -225,14 +225,12 @@ export default function BusinessPanel({
         >
           <option value="">请选择场次</option>
           {sessions.map((s) => {
-            const sessionRounds = s.session_id === selectedSession?.session_id ? rounds : [];
-            const totalRound = sessionRounds.length > 0 ? Math.max(...sessionRounds.map(r => r.round_number)) : 0;
-            return (
-              <option key={s.session_id} value={s.session_id}>
-                {s.name} (共 {totalRound} 轮)
-              </option>
-            );
-          })}
+          return (
+            <option key={s.session_id} value={s.session_id}>
+              {s.name}
+            </option>
+          );
+        })}
         </select>
 
         {selectedSession && (

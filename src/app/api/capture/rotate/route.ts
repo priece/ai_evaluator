@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 function restartCapture(cameraId: string, audioId: string | null, rotation: number) {
   logInfo(`restartCapture 参数: cameraId=${cameraId}, audioId=${audioId}, rotation=${rotation}`);
   
-  const hlsDir = path.join(process.cwd(), 'hls');
+  const hlsDir = process.env.HLS_DIR ? path.resolve(process.env.HLS_DIR) : path.join(process.cwd(), 'hls');
   if (!fs.existsSync(hlsDir)) {
     fs.mkdirSync(hlsDir, { recursive: true });
   }
