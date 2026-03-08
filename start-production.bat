@@ -43,6 +43,7 @@ echo [3/4] Creating required directories...
 if not exist "data" mkdir data
 if not exist "hls" mkdir hls
 if not exist "logs" mkdir logs
+if not exist "records" mkdir records
 echo [Done] Directory check complete
 echo.
 
@@ -51,11 +52,7 @@ echo Access: http://localhost:3000
 echo Press Ctrl+C to stop
 echo.
 
-REM Set environment variables
 set NODE_ENV=production
-
-REM Set data directory to script location (production package directory)
-set DATA_DIR=%~dp0
 
 node server.js
 
