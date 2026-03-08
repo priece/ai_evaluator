@@ -22,9 +22,14 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
   const [selectedAudio, setSelectedAudio] = useState<string>('');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [rotation, setRotation] = useState<number>(0);
+  const [showWaveform, setShowWaveform] = useState<boolean>(false);
   const playerRef = useRef<any>(null);
   const videoRef = useRef<HTMLDivElement>(null);
+  const waveformRef = useRef<HTMLDivElement>(null);
+  const wavesurferRef = useRef<any>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const audioPollingRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAudioMtimeRef = useRef<number>(0);
 
   const startPolling = () => {
     if (pollingRef.current) {
@@ -58,6 +63,104 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         console.error('轮询 m3u8 失败:', error);
       }
     }, 3000);
+  };
+
+  const initWaveSurfer = async () => {
+    if (typeof window === 'undefined') return;
+    
+    if (wavesurferRef.current) return;
+    
+    setShowWaveform(true);
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    if (!waveformRef.current) {
+      console.error('waveformRef.current is null');
+      return;
+    }
+    
+    try {
+      const WaveSurfer = (await import('wavesurfer.js')).default;
+      
+      wavesurferRef.current = WaveSurfer.create({
+        container: waveformRef.current,
+        waveColor: '#4F46E5',
+        progressColor: '#818CF8',
+        height: 60,
+        normalize: true,
+        backend: 'WebAudio'
+      });
+      
+      wavesurferRef.current.on('error', (err: any) => {
+        console.error('WaveSurfer error:', err);
+      });
+      
+      wavesurferRef.current.on('ready', () => {
+        console.log('WaveSurfer ready');
+      });
+    } catch (error) {
+      console.error('初始化 WaveSurfer 失败:', error);
+    }
+  };
+
+  const checkAndLoadAudio = async () => {
+    try {
+      const infoRes = await fetch('/api/audio/last_info');
+      console.log('audio info response:', infoRes.status);
+      
+      if (!infoRes.ok) {
+        console.log('audio info not ok, hiding waveform');
+        setShowWaveform(false);
+        lastAudioMtimeRef.current = 0;
+        return;
+      }
+      
+      const info = await infoRes.json();
+      console.log('audio info:', info);
+      
+      if (!info.success || !info.filename) {
+        setShowWaveform(false);
+        return;
+      }
+      
+      if (info.mtime === lastAudioMtimeRef.current) {
+        console.log('same mtime, skip loading');
+        return;
+      }
+      
+      console.log('new audio file detected:', info.filename);
+      lastAudioMtimeRef.current = info.mtime;
+      
+      if (!wavesurferRef.current) {
+        await initWaveSurfer();
+      }
+      
+      if (wavesurferRef.current) {
+        console.log('loading audio:', info.filename);
+        wavesurferRef.current.load(`/api/audio/file?name=${encodeURIComponent(info.filename)}`);
+      }
+    } catch (error) {
+      console.error('检查音频失败:', error);
+    }
+  };
+
+  const startAudioPolling = () => {
+    if (audioPollingRef.current) {
+      clearInterval(audioPollingRef.current);
+    }
+    
+    checkAndLoadAudio();
+    
+    audioPollingRef.current = setInterval(() => {
+      checkAndLoadAudio();
+    }, 2000);
+  };
+
+  const stopAudioPolling = () => {
+    if (audioPollingRef.current) {
+      clearInterval(audioPollingRef.current);
+      audioPollingRef.current = null;
+    }
   };
 
   useEffect(() => {
@@ -121,6 +224,11 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         clearInterval(pollingRef.current);
         pollingRef.current = null;
       }
+      stopAudioPolling();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
+        wavesurferRef.current = null;
+      }
       if (playerRef.current) {
         console.log('销毁播放器');
         playerRef.current.dispose();
@@ -133,16 +241,20 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
     console.log('isCapturing 变化:', isCapturing);
     if (isCapturing) {
       startPolling();
+      if (selectedAudio) {
+        startAudioPolling();
+      }
     } else if (playerRef.current) {
       console.log('停止播放');
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
         pollingRef.current = null;
       }
+      stopAudioPolling();
       playerRef.current.pause();
       playerRef.current.src('');
     }
-  }, [isCapturing]);
+  }, [isCapturing, selectedAudio]);
 
   const startCapture = async () => {
     if (!selectedCamera) {
@@ -176,6 +288,8 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
       const data = await res.json();
       if (data.success) {
         setIsCapturing(false);
+        setShowWaveform(false);
+        lastAudioMtimeRef.current = 0;
       }
     } catch (error) {
       console.error('停止摄像头失败:', error);
@@ -284,12 +398,19 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
           </button>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           <div className="w-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             <div data-vjs-player className="w-full h-full">
               <div ref={videoRef} className="w-full h-full" />
             </div>
           </div>
+          
+          {showWaveform && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm font-medium text-gray-700 mb-2">音频波形</div>
+              <div ref={waveformRef} className="w-full" />
+            </div>
+          )}
         </div>
       </div>
     </div>

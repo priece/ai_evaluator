@@ -44,6 +44,7 @@ if not exist "data" mkdir data
 if not exist "hls" mkdir hls
 if not exist "logs" mkdir logs
 if not exist "records" mkdir records
+if not exist "audio" mkdir audio
 echo [Done] Directory check complete
 echo.
 

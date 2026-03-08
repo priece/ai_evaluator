@@ -6,6 +6,7 @@ const path = require('path');
 
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const HLS_DIR = process.env.HLS_DIR || './hls';
+const AUDIO_DIR = path.join(process.cwd(), 'audio');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -76,6 +77,19 @@ app.prepare().then(() => {
             res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
           } else if (parsedUrl.pathname.endsWith('.ts')) {
             res.setHeader('Content-Type', 'video/MP2T');
+          }
+          res.end(data);
+        }
+      });
+    } else if (parsedUrl.pathname.startsWith('/audio/')) {
+      const filePath = path.join(AUDIO_DIR, parsedUrl.pathname.replace('/audio/', ''));
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.statusCode = 404;
+          res.end('File not found');
+        } else {
+          if (parsedUrl.pathname.endsWith('.wav')) {
+            res.setHeader('Content-Type', 'audio/wav');
           }
           res.end(data);
         }

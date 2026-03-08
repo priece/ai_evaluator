@@ -33,6 +33,7 @@ mkdir %PACKAGE_DIR%\data
 mkdir %PACKAGE_DIR%\hls
 mkdir %PACKAGE_DIR%\logs
 mkdir %PACKAGE_DIR%\records
+mkdir %PACKAGE_DIR%\audio
 echo [Done]
 echo.
 

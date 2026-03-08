@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { logInfo, logError, logWarn } from './logger';
 import { createRecordDir, startFileWatcher, getHlsDir, cleanHlsDir } from './recorder';
+import { ensureAudioDir, generateAudioFileName, cleanupOldAudioFiles, startAudioCleanupTimer, stopAudioCleanupTimer } from './audioManager';
 
 const transposeMap: Record<number, number> = {
   0: 0,
@@ -13,6 +14,7 @@ const transposeMap: Record<number, number> = {
 
 export interface CaptureState {
   ffmpegProcess: ReturnType<typeof spawn> | null;
+  audioFfmpegProcess: ReturnType<typeof spawn> | null;
   activeCameraId: string | null;
   activeAudioId: string | null;
   rotation: number;
@@ -26,6 +28,7 @@ declare global {
 
 global.cameraManagerState = global.cameraManagerState || {
   ffmpegProcess: null,
+  audioFfmpegProcess: null,
   activeCameraId: null,
   activeAudioId: null,
   rotation: 0,
@@ -143,7 +146,56 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
     cleanup();
   });
   
+  if (audioId) {
+    startAudioCapture(cameraId, audioId);
+  }
+  
   return { success: true, message: '开始采集成功', rotation: actualRotation, recordDir };
+}
+
+function startAudioCapture(cameraId: string, audioId: string): void {
+  const audioDir = ensureAudioDir();
+  startAudioCleanupTimer();
+  
+  const audioFileName = generateAudioFileName();
+  const audioFilePath = path.join(audioDir, audioFileName);
+  
+  const audioArgs = [
+    '-f', 'dshow',
+    '-i', `audio=${audioId}`,
+    '-ar', '8000',
+    '-ac', '1',
+    '-acodec', 'pcm_s16le',
+    '-f', 'segment',
+    '-segment_time', '2',
+    '-strftime', '1',
+    path.join(audioDir, 'audio_%Y%m%d_%H%M%S.wav')
+  ];
+  
+  logInfo(`音频采集 ffmpeg 参数: ${audioArgs.join(' ')}`);
+  
+  const audioFfmpeg = spawn('ffmpeg', audioArgs);
+  state.audioFfmpegProcess = audioFfmpeg;
+  
+  logInfo(`音频采集进程已启动: ${audioFfmpeg.pid}`);
+  
+  audioFfmpeg.stdout.on('data', (data: any) => {
+    logInfo(`[audio-ffmpeg] ${data}`);
+  });
+  
+  audioFfmpeg.stderr.on('data', (data: any) => {
+    logInfo(`[audio-ffmpeg] ${data}`);
+  });
+  
+  audioFfmpeg.on('close', (code: any) => {
+    logInfo(`音频采集进程退出，code: ${code}`);
+    state.audioFfmpegProcess = null;
+  });
+  
+  audioFfmpeg.on('error', (err: any) => {
+    logError(`音频采集进程错误: ${err}`);
+    state.audioFfmpegProcess = null;
+  });
 }
 
 export async function stopCapture(): Promise<{ success: boolean; message: string }> {
@@ -160,18 +212,29 @@ export async function stopCapture(): Promise<{ success: boolean; message: string
   
   return new Promise((resolve) => {
     const pid = state.ffmpegProcess?.pid;
+    const audioPid = state.audioFfmpegProcess?.pid;
     
     if (process.platform === 'win32') {
       try {
         const { execSync } = require('child_process');
         execSync(`taskkill /pid ${pid} /T /F`, { timeout: 5000 });
         logInfo('ffmpeg 进程已通过 taskkill 停止');
+        
+        if (audioPid) {
+          execSync(`taskkill /pid ${audioPid} /T /F`, { timeout: 5000 });
+          logInfo('音频采集进程已停止');
+        }
       } catch (killError: any) {
         logError(`taskkill 失败: ${killError.message}`);
       }
     } else {
       state.ffmpegProcess?.kill('SIGTERM');
       logInfo('ffmpeg 进程已发送 SIGTERM');
+      
+      if (state.audioFfmpegProcess) {
+        state.audioFfmpegProcess.kill('SIGTERM');
+        logInfo('音频采集进程已发送 SIGTERM');
+      }
     }
     
     cleanup();
@@ -222,9 +285,11 @@ function cleanupFileWatcher(): void {
 
 function cleanup(): void {
   state.ffmpegProcess = null;
+  state.audioFfmpegProcess = null;
   state.activeCameraId = null;
   state.activeAudioId = null;
   state.recordDir = null;
   cleanupFileWatcher();
+  stopAudioCleanupTimer();
   logInfo('摄像头状态已清理');
 }
