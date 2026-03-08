@@ -25,10 +25,17 @@ interface Round {
   submit: number;
 }
 
+interface User {
+  id: string;
+  username: string;
+  role: string;
+}
+
 interface BusinessPanelProps {
   selectedSession: Session | null;
   currentRound: Round | null;
   highlightRound: Round | null;
+  user: User;
   onSessionChange: (session: Session | null) => void;
   onRoundChange: (round: Round | null) => void;
   onRoundUpdate: (round: Round) => void;
@@ -38,10 +45,12 @@ export default function BusinessPanel({
   selectedSession, 
   currentRound,
   highlightRound,
+  user,
   onSessionChange, 
   onRoundChange,
   onRoundUpdate
 }: BusinessPanelProps) {
+  const isAdmin = user.role === 'admin';
   const [sessions, setSessions] = useState<Session[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -208,7 +217,8 @@ export default function BusinessPanel({
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              disabled={!isAdmin}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               新建场次
             </button>
@@ -264,7 +274,7 @@ export default function BusinessPanel({
             return (
               <button
                 onClick={createNewRound}
-                disabled={!canCreateRound}
+                disabled={!canCreateRound || !isAdmin}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 新建轮次
@@ -314,7 +324,8 @@ export default function BusinessPanel({
                   {round.status === RoundStatus.NOT_STARTED && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startPerformance'); }}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                      disabled={!isAdmin}
+                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       开始演出
                     </button>
@@ -322,7 +333,8 @@ export default function BusinessPanel({
                   {round.status === RoundStatus.PERFORMING && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'endPerformance'); }}
-                      className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      disabled={!isAdmin}
+                      className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       结束演出
                     </button>
@@ -330,7 +342,7 @@ export default function BusinessPanel({
                   {round.status === RoundStatus.PERFORMANCE_ENDED && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
-                      disabled={evaluatingRoundId === round.id}
+                      disabled={evaluatingRoundId === round.id || !isAdmin}
                       className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {evaluatingRoundId === round.id ? '评估中...' : '开始评估'}
@@ -345,15 +357,15 @@ export default function BusinessPanel({
                     <>
                       <button
                         onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
-                        disabled={evaluatingRoundId === round.id}
-                        className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50"
+                        disabled={evaluatingRoundId === round.id || !isAdmin}
+                        className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'endRound'); }}
-                        disabled={evaluatingRoundId === round.id}
-                        className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                        disabled={evaluatingRoundId === round.id || !isAdmin}
+                        className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         结束本轮
                       </button>
@@ -362,7 +374,8 @@ export default function BusinessPanel({
                   {round.status === RoundStatus.ROUND_ENDED && highlightRound?.id === round.id && round.submit === 0 && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); }}
-                      className="px-3 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                      disabled={!isAdmin}
+                      className="px-3 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       发布
                     </button>

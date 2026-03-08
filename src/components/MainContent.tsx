@@ -109,6 +109,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
           <VideoMonitor 
             selectedSession={selectedSession}
             currentRound={currentRound}
+            user={user}
             onRoundChange={handleRoundChange}
           />
         </div>
@@ -119,6 +120,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
             selectedSession={selectedSession}
             currentRound={currentRound}
             highlightRound={highlightRound}
+            user={user}
             onSessionChange={handleSessionChange}
             onRoundChange={handleRoundChange}
             onRoundUpdate={handleRoundUpdate}

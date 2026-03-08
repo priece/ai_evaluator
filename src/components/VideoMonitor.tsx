@@ -9,13 +9,21 @@ if (typeof window !== 'undefined') {
   require('video.js/dist/video-js.css');
 }
 
+interface User {
+  id: string;
+  username: string;
+  role: string;
+}
+
 interface VideoMonitorProps {
   selectedSession: any;
   currentRound: any;
+  user: User;
   onRoundChange: (round: any) => void;
 }
 
-export default function VideoMonitor({ selectedSession, currentRound, onRoundChange }: VideoMonitorProps) {
+export default function VideoMonitor({ selectedSession, currentRound, user, onRoundChange }: VideoMonitorProps) {
+  const isAdmin = user.role === 'admin';
   const [cameras, setCameras] = useState<{ id: string; name: string }[]>([]);
   const [audioDevices, setAudioDevices] = useState<{ id: string; name: string }[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
@@ -368,21 +376,21 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         <div className="flex space-x-2 mb-4">
           <button
             onClick={startCapture}
-            disabled={isCapturing || !selectedCamera}
+            disabled={isCapturing || !selectedCamera || !isAdmin}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             开始采集
           </button>
           <button
             onClick={stopCapture}
-            disabled={!isCapturing}
+            disabled={!isCapturing || !isAdmin}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             停止采集
           </button>
           <button
             onClick={() => rotateVideo('left')}
-            disabled={!isCapturing}
+            disabled={!isCapturing || !isAdmin}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             title="左转90度"
           >
@@ -390,7 +398,7 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
           </button>
           <button
             onClick={() => rotateVideo('right')}
-            disabled={!isCapturing}
+            disabled={!isCapturing || !isAdmin}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             title="右转90度"
           >
