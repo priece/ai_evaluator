@@ -41,6 +41,14 @@ if exist "ai-evaluator-production" (
     echo ai-evaluator-production not found
 )
 
+if exist ".next" (
+    echo Cleaning .next...
+    rmdir /s /q ".next"
+    echo .next cleaned
+) else (
+    echo .next not found
+)
+
 echo.
 echo Done!
 pause
