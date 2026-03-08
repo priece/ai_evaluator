@@ -54,7 +54,13 @@ export interface CameraConfig {
   updated_at: string;
 }
 
+// 数据库文件路径
 const DB_JSON_FILE = path.join(process.cwd(), 'data', 'database.json');
+
+// 调试日志：打印数据库文件路径
+console.log('[DB] process.cwd():', process.cwd());
+console.log('[DB] DB_JSON_FILE:', DB_JSON_FILE);
+console.log('[DB] File exists:', fs.existsSync(DB_JSON_FILE));
 
 // 内置用户
 const DEFAULT_USERS: User[] = [
@@ -92,9 +98,15 @@ function saveToFile() {
 
 // 从 JSON 文件加载数据
 function loadFromFile() {
+  console.log('[DB] Loading from file:', DB_JSON_FILE);
+  console.log('[DB] File exists check:', fs.existsSync(DB_JSON_FILE));
   if (fs.existsSync(DB_JSON_FILE)) {
     try {
-      const data = JSON.parse(fs.readFileSync(DB_JSON_FILE, 'utf-8'));
+      const fileContent = fs.readFileSync(DB_JSON_FILE, 'utf-8');
+      console.log('[DB] File content length:', fileContent.length);
+      const data = JSON.parse(fileContent);
+      console.log('[DB] Parsed data keys:', Object.keys(data));
+      console.log('[DB] lastPublishedRoundId from file:', data.lastPublishedRoundId);
       users = data.users || [...DEFAULT_USERS];
       sessions = data.sessions || [];
       rounds = data.rounds || [];
@@ -102,8 +114,10 @@ function loadFromFile() {
       expertEvaluations = data.expertEvaluations || [];
       cameraConfigs = data.cameraConfigs || [];
       lastPublishedRoundId = data.lastPublishedRoundId || null;
+      console.log('[DB] Loaded lastPublishedRoundId:', lastPublishedRoundId);
     } catch (error) {
       logError(`加载数据失败: ${error}`);
+      console.log('[DB] Error loading file:', error);
       users = [...DEFAULT_USERS];
       sessions = [];
       rounds = [];
@@ -112,6 +126,8 @@ function loadFromFile() {
       cameraConfigs = [];
       lastPublishedRoundId = null;
     }
+  } else {
+    console.log('[DB] Database file does not exist, using defaults');
   }
 }
 

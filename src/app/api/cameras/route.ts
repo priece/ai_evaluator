@@ -3,6 +3,8 @@ import { spawnSync } from 'child_process';
 const capture = require('@/lib/capture.js');
 import { logInfo, logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     logInfo('[API] Fetching device list');

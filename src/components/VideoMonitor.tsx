@@ -184,6 +184,7 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
 
   const rotateVideo = async (direction: 'left' | 'right') => {
     try {
+      console.log('rotateVideo called:', direction, 'isCapturing:', isCapturing);
       if (playerRef.current) {
         playerRef.current.pause();
         playerRef.current.src('');
@@ -195,6 +196,7 @@ export default function VideoMonitor({ selectedSession, currentRound, onRoundCha
         body: JSON.stringify({ direction }),
       });
       const data = await res.json();
+      console.log('rotate response:', data);
       if (data.success) {
         setRotation(data.rotation);
         

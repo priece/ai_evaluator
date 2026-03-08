@@ -6,6 +6,8 @@ import fs from 'fs';
 import { saveCameraConfig } from '@/lib/db';
 import { logInfo, logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const { direction } = await request.json();

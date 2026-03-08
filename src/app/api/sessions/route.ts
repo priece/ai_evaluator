@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createSession, getAllSessions } from '@/lib/db';
 import { logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const { name } = await request.json();

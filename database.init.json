@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "Tidenews",
+      "password": "Tidenews@video.ai",
+      "role": "admin"
+    },
+    {
+      "id": "2",
+      "username": "guest",
+      "password": "guest",
+      "role": "guest"
+    }
+  ],
+  "sessions": [],
+  "rounds": [],
+  "regularEvaluations": [],
+  "expertEvaluations": [],
+  "cameraConfigs": [],
+  "lastPublishedRoundId": null
+}

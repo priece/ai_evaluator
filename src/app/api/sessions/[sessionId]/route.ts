@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession, updateSessionName, getRegularEvaluationsBySession, getExpertEvaluationsBySession } from '@/lib/db';
 import { logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request, { params }: { params: { sessionId: string } }) {
   try {
     const { sessionId } = params;

@@ -14,6 +14,8 @@ import {
 } from '@/lib/db';
 import { logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 function generateNormalScore(): number {
   // 要求：
   // 1. 必须大于 1，不超过 9.9

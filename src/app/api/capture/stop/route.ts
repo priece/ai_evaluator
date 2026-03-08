@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 const capture = require('@/lib/capture.js');
 import { logInfo, logError } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     logInfo('停止采集请求');
