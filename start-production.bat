@@ -13,7 +13,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [1/4] Checking Node.js version...
+echo [1/5] Checking Node.js version...
 node -v
 echo.
 
@@ -25,7 +25,7 @@ if errorlevel 1 (
     pause
 )
 
-echo [2/4] Checking production build...
+echo [2/5] Checking production build...
 if not exist ".next" (
     echo [Info] Build files not found, starting build...
     call npm run build
@@ -39,7 +39,22 @@ if not exist ".next" (
 )
 echo.
 
-echo [3/4] Creating required directories...
+echo [3/5] Checking dependencies...
+if not exist "node_modules" (
+    echo [Info] node_modules not found, installing dependencies...
+    call npm ci --only=production
+    if errorlevel 1 (
+        echo [Error] Failed to install dependencies
+        pause
+        exit /b 1
+    )
+    echo [Done] Dependencies installed
+) else (
+    echo [Info] node_modules exists
+)
+echo.
+
+echo [4/5] Creating required directories...
 if not exist "data" mkdir data
 if not exist "hls" mkdir hls
 if not exist "logs" mkdir logs
@@ -48,7 +63,7 @@ if not exist "audio" mkdir audio
 echo [Done] Directory check complete
 echo.
 
-echo [4/4] Starting production server...
+echo [5/5] Starting production server...
 echo Access: http://localhost:3000
 echo Press Ctrl+C to stop
 echo.

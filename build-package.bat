@@ -70,7 +70,7 @@ echo Package directory: %PACKAGE_DIR%
 echo.
 echo Deploy steps:
 echo   1. Copy %PACKAGE_DIR% to server
-echo   2. Run: npm ci --only=production
-echo   3. Run: start-production.bat
+echo   2. Run: start-production.bat
+echo      (It will auto install dependencies on first run)
 echo.
 pause
