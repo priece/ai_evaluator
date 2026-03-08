@@ -43,6 +43,7 @@ next-env.d.ts
 /hls/
 /log/
 /logs/
+/records/
 
 # production build
 ai-evaluator-production/

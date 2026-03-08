@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawnSync } from 'child_process';
-const capture = require('@/lib/capture.js');
+import { getState, isRunning } from '@/lib/cameraManager';
 import { logInfo, logError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -61,19 +61,16 @@ export async function GET() {
       logInfo('No audio devices detected');
     }
     
-    const activeCameraId = capture.activeCameraId || null;
-    const activeAudioId = capture.activeAudioId || null;
-    const isCapturing = !!capture.ffmpegProcess;
-    const rotation = capture.rotation || 0;
+    const state = getState();
     
     return NextResponse.json({ 
       success: true, 
       cameras,
       audioDevices,
-      activeCameraId,
-      activeAudioId,
-      isCapturing,
-      rotation
+      activeCameraId: state.activeCameraId,
+      activeAudioId: state.activeAudioId,
+      isCapturing: isRunning(),
+      rotation: state.rotation
     });
   } catch (error) {
     logError(`Failed to get device list: ${error}`);

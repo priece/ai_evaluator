@@ -4,9 +4,6 @@ const next = require('next');
 const fs = require('fs');
 const path = require('path');
 
-// 导入 capture 模块，用于管理 ffmpeg 进程
-const capture = require('./src/lib/capture.js');
-
 // 环境变量配置（带默认值）
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const LOG_DIR = process.env.LOG_DIR || './logs';
@@ -48,43 +45,31 @@ const handle = app.getRequestHandler();
 const hlsDir = path.resolve(HLS_DIR);
 
 // 停止 ffmpeg 进程的函数
-function stopFFmpeg() {
-  if (capture.ffmpegProcess) {
-    console.log('服务器退出，停止 ffmpeg 进程...');
-    try {
-      if (process.platform === 'win32') {
-        // 在 Windows 上使用 taskkill
-        const { execSync } = require('child_process');
-        execSync(`taskkill /pid ${capture.ffmpegProcess.pid} /T /F`);
-        console.log('ffmpeg 进程已通过 taskkill 停止');
-      } else {
-        // 在 Linux/Mac 上使用 kill
-        capture.ffmpegProcess.kill('SIGTERM');
-        console.log('ffmpeg 进程已停止');
-      }
-      capture.ffmpegProcess = null;
-    } catch (error) {
-      console.error('停止 ffmpeg 进程失败:', error);
-    }
+async function stopFFmpeg() {
+  try {
+    const { stopCapture } = require('./src/lib/cameraManager');
+    await stopCapture();
+    console.log('服务器退出，ffmpeg 进程已停止');
+  } catch (error) {
+    console.error('停止 ffmpeg 进程失败:', error);
   }
 }
 
 // 监听进程退出事件
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('收到 SIGINT 信号，准备退出...');
-  stopFFmpeg();
+  await stopFFmpeg();
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('收到 SIGTERM 信号，准备退出...');
-  stopFFmpeg();
+  await stopFFmpeg();
   process.exit(0);
 });
 
 process.on('exit', (code) => {
   console.log(`进程退出，退出码: ${code}`);
-  stopFFmpeg();
 });
 
 app.prepare().then(() => {

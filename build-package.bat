@@ -32,6 +32,7 @@ mkdir %PACKAGE_DIR%\src\lib
 mkdir %PACKAGE_DIR%\data
 mkdir %PACKAGE_DIR%\hls
 mkdir %PACKAGE_DIR%\logs
+mkdir %PACKAGE_DIR%\records
 echo [Done]
 echo.
 
