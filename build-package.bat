@@ -8,12 +8,12 @@ echo.
 set PACKAGE_NAME=ai-evaluator-production
 set PACKAGE_DIR=%PACKAGE_NAME%
 
-echo [1/6] Cleaning old files...
+echo [1/7] Cleaning old files...
 if exist %PACKAGE_DIR% rmdir /S /Q %PACKAGE_DIR%
 echo [Done]
 echo.
 
-echo [2/6] Building production...
+echo [2/7] Building production...
 call npm run build
 if errorlevel 1 (
     echo [Error] Build failed
@@ -23,7 +23,7 @@ if errorlevel 1 (
 echo [Done]
 echo.
 
-echo [3/6] Creating directory structure...
+echo [3/7] Creating directory structure...
 mkdir %PACKAGE_DIR%
 mkdir %PACKAGE_DIR%\public
 mkdir %PACKAGE_DIR%\public\background
@@ -37,17 +37,22 @@ mkdir %PACKAGE_DIR%\audio
 echo [Done]
 echo.
 
-echo [4/6] Copying build files...
+echo [4/7] Copying build files...
 xcopy /E /I /Q .next %PACKAGE_DIR%\.next\
 echo [Done]
 echo.
 
-echo [5/6] Copying static assets...
+echo [5/7] Copying static assets...
 xcopy /E /I /Q public\* %PACKAGE_DIR%\public\
 echo [Done]
 echo.
 
-echo [6/6] Copying config and source files...
+echo [6/7] Copying node_modules...
+xcopy /E /I /Q node_modules %PACKAGE_DIR%\node_modules\
+echo [Done]
+echo.
+
+echo [7/7] Copying config and source files...
 copy server.js %PACKAGE_DIR%\
 copy package.json %PACKAGE_DIR%\
 copy package-lock.json %PACKAGE_DIR%\
@@ -71,6 +76,5 @@ echo.
 echo Deploy steps:
 echo   1. Copy %PACKAGE_DIR% to server
 echo   2. Run: start-production.bat
-echo      (It will auto install dependencies on first run)
 echo.
 pause

@@ -70,6 +70,6 @@ echo.
 
 set NODE_ENV=production
 
-node server.js
+node server.js > output.log 2>&1
 
 pause
