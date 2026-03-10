@@ -33,6 +33,7 @@ export default function ScreenPage() {
   const [config, setConfig] = useState<ScreenConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchScreenData = async () => {
@@ -56,6 +57,7 @@ export default function ScreenPage() {
           background: result.background,
           motions: result.motions
         });
+        setBackgroundTimestamp(Date.now());
       }
     } catch (error) {
       console.error('Failed to get config:', error);
@@ -65,8 +67,12 @@ export default function ScreenPage() {
   useEffect(() => {
     fetchScreenData();
     fetchConfig();
-    const interval = setInterval(fetchScreenData, 5000);
-    return () => clearInterval(interval);
+    const dataInterval = setInterval(fetchScreenData, 5000);
+    const configInterval = setInterval(fetchConfig, 5000);
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(configInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -112,7 +118,7 @@ export default function ScreenPage() {
       <div 
         className="min-h-screen flex items-center justify-center relative"
         style={{
-          backgroundImage: config?.background ? `url(${config.background})` : undefined,
+          backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundColor: '#1a1a2e'
@@ -129,17 +135,13 @@ export default function ScreenPage() {
       <div 
         className="min-h-screen flex items-center justify-center relative"
         style={{
-          backgroundImage: config?.background ? `url(${config.background})` : undefined,
+          backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundColor: '#1a1a2e'
         }}
       >
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="text-center z-10">
-          <div className="text-white text-6xl font-bold mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Not Published</div>
-          <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Waiting for latest round result...</div>
-        </div>
+        {/* 未发布时只显示背景图，不显示任何内容 */}
       </div>
     );
   }
@@ -150,7 +152,7 @@ export default function ScreenPage() {
     <div 
       className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: config?.background ? `url(${config.background})` : undefined,
+        backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundColor: '#1a1a2e'

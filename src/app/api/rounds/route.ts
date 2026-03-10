@@ -10,7 +10,8 @@ import {
   endEvaluation,
   endRound,
   publishRound,
-  updateRound
+  updateRound,
+  clearLastPublishedRound
 } from '@/lib/db';
 import { logError } from '@/lib/logger';
 
@@ -168,6 +169,10 @@ export async function POST(request: Request) {
         }
         const publishedRound = await publishRound(roundId);
         return NextResponse.json({ success: true, round: publishedRound });
+        
+      case 'clearPublish':
+        await clearLastPublishedRound();
+        return NextResponse.json({ success: true, message: '已清除发布轮次' });
         
       default:
         return NextResponse.json(

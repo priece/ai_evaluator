@@ -345,12 +345,7 @@ export default function BusinessPanel({
                 onClick={() => onRoundChange(round)}
               >
                 <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium text-gray-100">第 {round.round_number} 轮</span>
-                    <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${getStatusBadgeClass(round.status)}`}>
-                      {RoundStatusLabels[round.status as RoundStatus]}
-                    </span>
-                  </div>
+                  <span className="font-medium text-gray-100">第 {round.round_number} 位演员</span>
                   <div className="text-lg font-bold text-blue-400">
                     {round.status === RoundStatus.PERFORMING ? (
                       <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -363,8 +358,9 @@ export default function BusinessPanel({
                   </div>
                 </div>
 
-                {/* 操作按钮 */}
-                <div className="mt-2 flex flex-wrap gap-2">
+                {/* 操作按钮和状态 */}
+                <div className="mt-2 flex justify-between items-center">
+                  <div className="flex flex-wrap gap-2">
                   {round.status === RoundStatus.NOT_STARTED && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startPerformance'); }}
@@ -398,23 +394,28 @@ export default function BusinessPanel({
                     </span>
                   )}
                   {round.status === RoundStatus.EVALUATED && (
-                    <>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
-                        disabled={evaluatingRoundId === round.id || !isAdmin}
-                        className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); onPublish?.(); }}
-                        disabled={!isAdmin}
-                        className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        发布
-                      </button>
-                    </>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
+                      disabled={evaluatingRoundId === round.id || !isAdmin}
+                      className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
+                    </button>
                   )}
+                  {/* 高亮的轮次始终显示发布按钮 */}
+                  {highlightRound?.id === round.id && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); onPublish?.(); }}
+                      disabled={!isAdmin}
+                      className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      发布
+                    </button>
+                  )}
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusBadgeClass(round.status)}`}>
+                    {RoundStatusLabels[round.status as RoundStatus]}
+                  </span>
                 </div>
               </div>
             ))}

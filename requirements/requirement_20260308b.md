@@ -1,4 +1,5 @@
 # 需求 20260308b
 - 我需要让不同的用户账号，登录后看到的页面不同
-  - 管理员：Tidenews ，密码：Tidenews@video.ai
-  - guest用户：guest ，密码：guest
+  - 管理员：admin ，能够点击所有的按钮
+  - guest用户：所有按钮都灰化，无法点击，只能够点击跳转大屏按钮
+  

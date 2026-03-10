@@ -339,6 +339,13 @@ export const getLastPublishedRound = async (): Promise<Round | null> => {
   return rounds.find(r => r.id === lastPublishedRoundId) || null;
 };
 
+// 清除最后一次发布的轮次
+export const clearLastPublishedRound = async (): Promise<void> => {
+  ensureDb();
+  lastPublishedRoundId = null;
+  saveToFile();
+};
+
 // 常规评估
 export const createRegularEvaluation = async (
   sessionId: string,

@@ -35,7 +35,12 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
   const [data, setData] = useState<ScreenData | null>(null);
   const [config, setConfig] = useState<ScreenConfig | null>(null);
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [isCleared, setIsCleared] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
   const animationRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchScreenData = async () => {
     try {
@@ -65,6 +70,9 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
   };
 
   useEffect(() => {
+    // 当 refreshKey 变化时（发布操作），重置清除状态并刷新数据
+    setIsCleared(false);
+    setCurrentFrame(0);
     fetchScreenData();
     fetchConfig();
   }, [refreshKey]);
@@ -86,7 +94,7 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
   const frames = currentMotion?.frames || [];
 
   useEffect(() => {
-    if (frames.length === 0) return;
+    if (frames.length === 0 || isCleared) return;
 
     const animate = () => {
       setCurrentFrame(prev => (prev + 1) % frames.length);
@@ -99,59 +107,179 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
         clearInterval(animationRef.current);
       }
     };
-  }, [frames.length]);
+  }, [frames.length, isCleared]);
 
-  if (!data || !data.hasPublishedRound) {
-    return (
+  const handleClearEvaluation = async () => {
+    try {
+      // 调用接口清除后台的发布轮次ID
+      const res = await fetch('/api/rounds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clearPublish' })
+      });
+      const result = await res.json();
+      if (result.success) {
+        // 清除页面状态
+        setIsCleared(true);
+        setCurrentFrame(0);
+        setData(null);
+      } else {
+        alert(result.message || '清除失败');
+      }
+    } catch (error) {
+      console.error('Clear publish error:', error);
+      alert('清除失败');
+    }
+  };
+
+  const handleOpenScreen = () => {
+    window.open('/screen', '_blank', 'width=1920,height=1080');
+  };
+
+  const handleUploadClick = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/screen/upload-background', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        // 刷新配置以获取新背景
+        setBackgroundTimestamp(Date.now());
+        await fetchConfig();
+        alert('背景图上传成功！');
+      } else {
+        alert(result.message || '上传失败');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('上传失败');
+    } finally {
+      setIsUploading(false);
+      setIsUploadModalOpen(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsUploadModalOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // 是否显示评估内容（评分、动画、mask）
+  const showEvaluationContent = !isCleared && data?.hasPublishedRound;
+
+  return (
+    <div className="flex gap-3 items-start">
+      {/* 左侧预览窗口 */}
       <div 
-        className="w-full h-full flex items-center justify-center relative overflow-hidden"
+        className="flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-lg border border-gray-700"
         style={{
-          backgroundImage: config?.background ? `url(${config.background})` : undefined,
+          width: '400px',
+          height: '260px',
+          backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundColor: '#1a1a2e'
         }}
       >
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="text-center z-10">
-          <div className="text-white text-lg font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">尚未发布</div>
-        </div>
-      </div>
-    );
-  }
+        {showEvaluationContent && (
+          <>
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
+              <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
+                <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
+                <div className="text-5xl font-bold text-white mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
+                  {data?.round?.score !== null ? data?.round?.score : '--'}
+                </div>
+                <div className="text-white/80 text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
+              </div>
 
-  const { round } = data;
-
-  return (
-    <div 
-      className="w-full h-full flex items-center justify-center relative overflow-hidden"
-      style={{
-        backgroundImage: config?.background ? `url(${config.background})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundColor: '#1a1a2e'
-      }}
-    >
-      <div className="absolute inset-0 bg-black/50"></div>
-      <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
-        <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
-          <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
-          <div className="text-5xl font-bold text-white mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
-            {round?.score !== null ? round?.score : '--'}
-          </div>
-          <div className="text-white/80 text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
-        </div>
-
-        {frames.length > 0 && (
-          <div className="flex items-center justify-center" style={{ width: '40%', height: '80%' }}>
-            <img 
-              src={frames[currentFrame]} 
-              alt="motion" 
-              className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-            />
-          </div>
+              {frames.length > 0 && (
+                <div className="flex items-center justify-center" style={{ width: '40%', height: '80%' }}>
+                  <img 
+                    src={frames[currentFrame]} 
+                    alt="motion" 
+                    className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+                  />
+                </div>
+              )}
+            </div>
+          </>
         )}
+        
+        {/* 清除后或未发布时不显示任何内容，只显示背景图 */}
       </div>
+
+      {/* 右侧按钮区域 */}
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={handleClearEvaluation}
+          className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap"
+        >
+          清除评估
+        </button>
+        <button
+          onClick={handleOpenScreen}
+          className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
+        >
+          跳转大屏
+        </button>
+        <button
+          onClick={handleUploadClick}
+          className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+        >
+          上传背景图
+        </button>
+      </div>
+
+      {/* 上传背景图弹窗 */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#1a1a1a] rounded-lg p-6 w-96 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">上传背景图</h3>
+            <div className="mb-4">
+              <p className="text-sm text-gray-400 mb-2">选择本地图片文件上传：</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                disabled={isUploading}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
+                disabled={isUploading}
+              >
+                取消
+              </button>
+            </div>
+            {isUploading && (
+              <div className="mt-2 text-center text-sm text-blue-400">上传中...</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
