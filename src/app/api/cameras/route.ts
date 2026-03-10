@@ -32,7 +32,7 @@ export async function GET() {
           logInfo(`Found camera: ${deviceName}`);
           cameras.push({ 
             id: deviceName, 
-            name: `摄像头: ${deviceName}` 
+            name: `Camera: ${deviceName}` 
           });
         }
       } else if (line.includes('(audio)')) {
@@ -42,7 +42,7 @@ export async function GET() {
           logInfo(`Found audio: ${deviceName}`);
           audioDevices.push({ 
             id: deviceName, 
-            name: `音频: ${deviceName}` 
+            name: `Audio: ${deviceName}` 
           });
         }
       }
@@ -52,12 +52,12 @@ export async function GET() {
     logInfo(`Audio devices found: ${audioDevices.length}`);
     
     if (cameras.length === 0) {
-      cameras.push({ id: '', name: '未检测到摄像头设备' });
+      cameras.push({ id: '', name: 'No camera device detected' });
       logInfo('No cameras detected');
     }
     
     if (audioDevices.length === 0) {
-      audioDevices.push({ id: '', name: '未检测到音频设备' });
+      audioDevices.push({ id: '', name: 'No audio device detected' });
       logInfo('No audio devices detected');
     }
     
@@ -76,8 +76,8 @@ export async function GET() {
     logError(`Failed to get device list: ${error}`);
     return NextResponse.json({ 
       success: true, 
-      cameras: [{ id: '', name: '获取摄像头列表失败' }],
-      audioDevices: [{ id: '', name: '获取音频列表失败' }],
+      cameras: [{ id: '', name: 'Failed to get camera list' }],
+      audioDevices: [{ id: '', name: 'Failed to get audio list' }],
       activeCameraId: null,
       activeAudioId: null,
       isCapturing: false,

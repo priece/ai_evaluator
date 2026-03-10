@@ -58,7 +58,7 @@ export function createSnapshotDir(sessionName: string, roundNumber: number): str
     fs.mkdirSync(snapshotDir, { recursive: true });
   }
   
-  logInfo(`创建 snapshot 目录: ${snapshotDir}`);
+  logInfo(`Created snapshot directory: ${snapshotDir}`);
   return snapshotDir;
 }
 
@@ -84,7 +84,7 @@ function generateSnapshotFileName(): string {
  */
 function captureSnapshot(): void {
   if (!state.snapshotDir) {
-    logError('snapshot 目录不存在');
+    logError('Snapshot directory does not exist');
     return;
   }
 
@@ -92,7 +92,7 @@ function captureSnapshot(): void {
   const m3u8Path = path.join(hlsDir, 'stream.m3u8');
   
   if (!fs.existsSync(m3u8Path)) {
-    logWarn('HLS 流尚未就绪，跳过此次截图');
+    logWarn('HLS stream not ready, skipping snapshot');
     return;
   }
 
@@ -107,12 +107,12 @@ function captureSnapshot(): void {
     outputPath
   ];
   
-  logInfo(`截取 snapshot: ${fileName}`);
+  logInfo(`Capturing snapshot: ${fileName}`);
   
   const ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
   
   ffmpegProcess.on('error', (err) => {
-    logError(`ffmpeg 截图失败: ${err}`);
+    logError(`ffmpeg snapshot failed: ${err}`);
   });
   
   ffmpegProcess.stderr.on('data', (data) => {
@@ -121,7 +121,7 @@ function captureSnapshot(): void {
   
   ffmpegProcess.on('close', (code) => {
     if (code !== 0) {
-      logError(`ffmpeg 截图进程退出，code: ${code}`);
+      logError(`ffmpeg snapshot process exited, code: ${code}`);
     }
   });
 }
@@ -138,11 +138,11 @@ function getHlsDir(): string {
  * 每隔一秒生成一张截图
  */
 export function startSnapshot(sessionName: string, roundNumber: number): { success: boolean; message: string; snapshotDir?: string } {
-  logInfo(`开始 snapshot 采集: sessionName=${sessionName}, roundNumber=${roundNumber}`);
+  logInfo(`Starting snapshot capture: sessionName=${sessionName}, roundNumber=${roundNumber}`);
   
   if (state.isActive) {
-    logWarn('snapshot 采集已经在运行');
-    return { success: true, message: 'snapshot 采集已经在运行', snapshotDir: state.snapshotDir || undefined };
+    logWarn('Snapshot capture already running');
+    return { success: true, message: 'Snapshot capture already running', snapshotDir: state.snapshotDir || undefined };
   }
   
   // 创建 snapshot 目录
@@ -163,20 +163,20 @@ export function startSnapshot(sessionName: string, roundNumber: number): { succe
     captureSnapshot();
   }, 1000);
   
-  logInfo(`snapshot 采集已启动，目录: ${snapshotDir}`);
+  logInfo(`Snapshot capture started, directory: ${snapshotDir}`);
   
-  return { success: true, message: 'snapshot 采集已启动', snapshotDir };
+  return { success: true, message: 'Snapshot capture started', snapshotDir };
 }
 
 /**
  * 停止 snapshot 采集
  */
 export function stopSnapshot(): { success: boolean; message: string; snapshotDir?: string } {
-  logInfo('停止 snapshot 采集');
+  logInfo('Stopping snapshot capture');
   
   if (!state.isActive) {
-    logInfo('snapshot 采集未在运行');
-    return { success: true, message: 'snapshot 采集未在运行' };
+    logInfo('Snapshot capture not running');
+    return { success: true, message: 'Snapshot capture not running' };
   }
   
   // 清除定时器
@@ -193,9 +193,9 @@ export function stopSnapshot(): { success: boolean; message: string; snapshotDir
   state.sessionName = null;
   state.roundNumber = null;
   
-  logInfo('snapshot 采集已停止');
+  logInfo('Snapshot capture stopped');
   
-  return { success: true, message: 'snapshot 采集已停止', snapshotDir: snapshotDir || undefined };
+  return { success: true, message: 'Snapshot capture stopped', snapshotDir: snapshotDir || undefined };
 }
 
 /**
@@ -210,7 +210,7 @@ export function getUseSnapshotConfig(): boolean {
       return config.useSnapshot === true;
     }
   } catch (error) {
-    logError(`读取 snapshot 配置失败: ${error}`);
+    logError(`Failed to read snapshot config: ${error}`);
   }
   return false;
 }
@@ -227,7 +227,7 @@ export function getUseRecordConfig(): boolean {
       return config.useRecord !== false; // 默认为 true
     }
   } catch (error) {
-    logError(`读取 record 配置失败: ${error}`);
+    logError(`Failed to read record config: ${error}`);
   }
   return true;
 }

@@ -15,7 +15,7 @@ export function ensureAudioDir(): string {
   const audioDir = getAudioDir();
   if (!fs.existsSync(audioDir)) {
     fs.mkdirSync(audioDir, { recursive: true });
-    logInfo(`创建音频目录: ${audioDir}`);
+    logInfo(`Created audio directory: ${audioDir}`);
   }
   return audioDir;
 }
@@ -49,9 +49,9 @@ export function cleanupOldAudioFiles(): void {
     for (const file of toDelete) {
       try {
         fs.unlinkSync(file.path);
-        logInfo(`删除旧音频文件: ${file.name}`);
+        logInfo(`Deleted old audio file: ${file.name}`);
       } catch (err) {
-        logError(`删除音频文件失败: ${file.name}, ${err}`);
+        logError(`Failed to delete audio file: ${file.name}, ${err}`);
       }
     }
   }
@@ -66,14 +66,14 @@ export function startAudioCleanupTimer(): void {
     cleanupOldAudioFiles();
   }, CLEANUP_INTERVAL);
   
-  logInfo('音频清理定时器已启动');
+  logInfo('Audio cleanup timer started');
 }
 
 export function stopAudioCleanupTimer(): void {
   if (cleanupTimer) {
     clearInterval(cleanupTimer);
     cleanupTimer = null;
-    logInfo('音频清理定时器已停止');
+    logInfo('Audio cleanup timer stopped');
   }
 }
 

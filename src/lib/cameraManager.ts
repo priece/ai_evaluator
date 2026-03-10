@@ -56,11 +56,11 @@ export function setRotation(rotation: number): void {
 }
 
 export async function startCapture(cameraId: string, audioId: string | null, rotation?: number): Promise<{ success: boolean; message: string; rotation: number; recordDir?: string }> {
-  logInfo(`开始采集: cameraId=${cameraId}, audioId=${audioId}, rotation=${rotation}`);
+  logInfo(`Starting capture: cameraId=${cameraId}, audioId=${audioId}, rotation=${rotation}`);
   
   if (state.ffmpegProcess) {
-    logWarn(`ffmpeg 进程已经在运行，pid: ${state.ffmpegProcess.pid}`);
-    return { success: true, message: 'ffmpeg 进程已经在运行', rotation: state.rotation };
+    logWarn(`ffmpeg process already running, pid: ${state.ffmpegProcess.pid}`);
+    return { success: true, message: 'ffmpeg process already running', rotation: state.rotation };
   }
   
   const hlsDir = getHlsDir();
@@ -72,9 +72,9 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
   if (useRecord) {
     recordDir = createRecordDir();
     state.recordDir = recordDir;
-    logInfo(`录制功能已启用，录制目录: ${recordDir}`);
+    logInfo(`Recording enabled, record directory: ${recordDir}`);
   } else {
-    logInfo('录制功能已禁用');
+    logInfo('Recording disabled');
   }
   
   const actualRotation = rotation ?? state.rotation;
@@ -124,7 +124,7 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
     path.join(hlsDir, 'stream.m3u8')
   );
   
-  logInfo(`ffmpeg 参数: ${ffmpegArgs.join(' ')}`);
+  logInfo(`ffmpeg args: ${ffmpegArgs.join(' ')}`);
   
   const ffmpegCommand = spawn('ffmpeg', ffmpegArgs);
   
@@ -138,7 +138,7 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
     state.fileWatcher = fileWatcher;
   }
   
-  logInfo(`ffmpeg 进程已启动: ${ffmpegCommand.pid}`);
+  logInfo(`ffmpeg process started: ${ffmpegCommand.pid}`);
   
   ffmpegCommand.stdout.on('data', (data: any) => {
     logInfo(`[ffmpeg] ${data}`);
@@ -154,7 +154,7 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
   });
   
   ffmpegCommand.on('error', (err: any) => {
-    logError(`ffmpeg 进程错误: ${err}`);
+    logError(`ffmpeg process error: ${err}`);
     cleanup();
   });
   
@@ -162,7 +162,7 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
     startAudioCapture(cameraId, audioId);
   }
   
-  return { success: true, message: '开始采集成功', rotation: actualRotation, recordDir: recordDir || undefined };
+  return { success: true, message: 'Capture started successfully', rotation: actualRotation, recordDir: recordDir || undefined };
 }
 
 function startAudioCapture(cameraId: string, audioId: string): void {
@@ -184,12 +184,12 @@ function startAudioCapture(cameraId: string, audioId: string): void {
     path.join(audioDir, 'audio_%Y%m%d_%H%M%S.wav')
   ];
   
-  logInfo(`音频采集 ffmpeg 参数: ${audioArgs.join(' ')}`);
+  logInfo(`Audio capture ffmpeg args: ${audioArgs.join(' ')}`);
   
   const audioFfmpeg = spawn('ffmpeg', audioArgs);
   state.audioFfmpegProcess = audioFfmpeg;
   
-  logInfo(`音频采集进程已启动: ${audioFfmpeg.pid}`);
+  logInfo(`Audio capture process started: ${audioFfmpeg.pid}`);
   
   audioFfmpeg.stdout.on('data', (data: any) => {
     logInfo(`[audio-ffmpeg] ${data}`);
@@ -200,25 +200,25 @@ function startAudioCapture(cameraId: string, audioId: string): void {
   });
   
   audioFfmpeg.on('close', (code: any) => {
-    logInfo(`音频采集进程退出，code: ${code}`);
+    logInfo(`Audio capture process exited, code: ${code}`);
     state.audioFfmpegProcess = null;
   });
   
   audioFfmpeg.on('error', (err: any) => {
-    logError(`音频采集进程错误: ${err}`);
+    logError(`Audio capture process error: ${err}`);
     state.audioFfmpegProcess = null;
   });
 }
 
 export async function stopCapture(): Promise<{ success: boolean; message: string }> {
-  logInfo('停止采集');
+  logInfo('Stopping capture');
   
   if (!state.ffmpegProcess) {
-    logInfo('没有正在运行的 ffmpeg 进程');
-    return { success: true, message: '没有正在运行的 ffmpeg 进程' };
+    logInfo('No running ffmpeg process');
+    return { success: true, message: 'No running ffmpeg process' };
   }
   
-  logInfo(`正在停止 ffmpeg 进程: ${state.ffmpegProcess.pid}`);
+  logInfo(`Stopping ffmpeg process: ${state.ffmpegProcess.pid}`);
   
   cleanupFileWatcher();
   
@@ -230,27 +230,27 @@ export async function stopCapture(): Promise<{ success: boolean; message: string
       try {
         const { execSync } = require('child_process');
         execSync(`taskkill /pid ${pid} /T /F`, { timeout: 5000 });
-        logInfo('ffmpeg 进程已通过 taskkill 停止');
+        logInfo('ffmpeg process stopped via taskkill');
         
         if (audioPid) {
           execSync(`taskkill /pid ${audioPid} /T /F`, { timeout: 5000 });
-          logInfo('音频采集进程已停止');
+          logInfo('Audio capture process stopped');
         }
       } catch (killError: any) {
-        logError(`taskkill 失败: ${killError.message}`);
+        logError(`taskkill failed: ${killError.message}`);
       }
     } else {
       state.ffmpegProcess?.kill('SIGTERM');
-      logInfo('ffmpeg 进程已发送 SIGTERM');
+      logInfo('ffmpeg process sent SIGTERM');
       
       if (state.audioFfmpegProcess) {
         state.audioFfmpegProcess.kill('SIGTERM');
-        logInfo('音频采集进程已发送 SIGTERM');
+        logInfo('Audio capture process sent SIGTERM');
       }
     }
     
     cleanup();
-    resolve({ success: true, message: '停止采集成功' });
+    resolve({ success: true, message: 'Capture stopped successfully' });
   });
 }
 
@@ -265,10 +265,10 @@ export async function rotateCapture(direction: 'left' | 'right'): Promise<{ succ
   }
   
   state.rotation = newRotation;
-  logInfo(`旋转角度: ${currentRotation} -> ${newRotation}`);
+  logInfo(`Rotation: ${currentRotation} -> ${newRotation}`);
   
   if (state.ffmpegProcess && state.activeCameraId) {
-    logInfo('正在重启 ffmpeg 以应用旋转...');
+    logInfo('Restarting ffmpeg to apply rotation...');
     
     const cameraId = state.activeCameraId;
     const audioId = state.activeAudioId;
@@ -287,9 +287,9 @@ function cleanupFileWatcher(): void {
   if (state.fileWatcher) {
     try {
       state.fileWatcher.close();
-      logInfo('文件监视器已关闭');
+      logInfo('File watcher closed');
     } catch (err) {
-      logError(`关闭文件监视器失败: ${err}`);
+      logError(`Failed to close file watcher: ${err}`);
     }
     state.fileWatcher = null;
   }
@@ -303,5 +303,5 @@ function cleanup(): void {
   state.recordDir = null;
   cleanupFileWatcher();
   stopAudioCleanupTimer();
-  logInfo('摄像头状态已清理');
+  logInfo('Camera state cleaned up');
 }

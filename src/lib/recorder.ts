@@ -22,7 +22,7 @@ export function createRecordDir(): string {
     fs.mkdirSync(recordDir, { recursive: true });
   }
   
-  logInfo(`创建录制目录: ${recordDir}`);
+  logInfo(`Created record directory: ${recordDir}`);
   return recordDir;
 }
 
@@ -82,7 +82,7 @@ export function startFileWatcher(hlsDir: string, recordDir: string): fs.FSWatche
             const destTsPath = path.join(recordDir, segment);
             if (fs.existsSync(srcTsPath) && !fs.existsSync(destTsPath)) {
               fs.copyFileSync(srcTsPath, destTsPath);
-              logInfo(`复制切片到录制目录: ${segment}`);
+              logInfo(`Copied segment to record directory: ${segment}`);
             }
           }
         }
@@ -90,10 +90,10 @@ export function startFileWatcher(hlsDir: string, recordDir: string): fs.FSWatche
         if (newSegmentsFound) {
           const m3u8Content = buildM3u8(Array.from(existingSegments));
           fs.writeFileSync(destM3u8Path, m3u8Content, 'utf-8');
-          logInfo(`更新录制 m3u8，当前共 ${existingSegments.size} 个切片`);
+          logInfo(`Updated record m3u8, total ${existingSegments.size} segments`);
         }
       } catch (err) {
-        logError(`处理 m3u8 失败: ${err}`);
+        logError(`Failed to process m3u8: ${err}`);
       }
     }
   });
@@ -111,13 +111,13 @@ export function cleanHlsDir(hlsDir: string): void {
     return;
   }
   
-  logInfo('清理 hls 目录...');
+  logInfo('Cleaning hls directory...');
   const files = fs.readdirSync(hlsDir);
   for (const file of files) {
     if (file.endsWith('.ts') || file.endsWith('.m3u8') || file.endsWith('.m3u8.tmp')) {
       const filePath = path.join(hlsDir, file);
       fs.unlinkSync(filePath);
-      logInfo(`删除文件: ${file}`);
+      logInfo(`Deleted file: ${file}`);
     }
   }
 }

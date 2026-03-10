@@ -112,7 +112,7 @@ export async function POST(request: Request) {
           const session = await getSession(startedRound.session_id);
           if (session) {
             const snapshotResult = startSnapshot(session.name, startedRound.round_number);
-            logInfo(`snapshot 启动结果: ${snapshotResult.message}`);
+            logInfo(`Snapshot start result: ${snapshotResult.message}`);
           }
         }
         
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
         // 停止 snapshot 采集
         if (getUseSnapshotConfig()) {
           const snapshotResult = stopSnapshot();
-          logInfo(`snapshot 停止结果: ${snapshotResult.message}`);
+          logInfo(`Snapshot stop result: ${snapshotResult.message}`);
         }
         
         return NextResponse.json({ success: true, round: endedPerfRound });
@@ -200,9 +200,9 @@ export async function POST(request: Request) {
         );
     }
   } catch (error) {
-    logError(`轮次操作失败: ${error}`);
+    logError(`Round operation failed: ${error}`);
     return NextResponse.json(
-      { success: false, message: '操作失败' },
+      { success: false, message: 'Operation failed' },
       { status: 500 }
     );
   }
@@ -223,9 +223,9 @@ export async function GET(request: Request) {
     const rounds = await getRoundsBySession(sessionId);
     return NextResponse.json({ success: true, rounds });
   } catch (error) {
-    logError(`获取轮次失败: ${error}`);
+    logError(`Failed to get rounds: ${error}`);
     return NextResponse.json(
-      { success: false, message: '获取轮次失败' },
+      { success: false, message: 'Failed to get rounds' },
       { status: 500 }
     );
   }
