@@ -9,8 +9,8 @@
 - **AI 自动评估**：对采集的视频进行 AI 自动评分（0-100分）
 - **专家评估**：支持专家输入参考分数进行评估
 - **场次管理**：支持新建场次、加载历史场次，动态计算轮次数
-- **轮次管理**：支持创建轮次、开始/结束演出、开始/结束评估、结束轮次、发布结果
-- **发布功能**：轮次结束后可发布结果，支持查看已发布/未发布状态
+- **演出管理**：支持创建演出、开始/结束演出、开始/结束评估、发布结果
+- **发布功能**：评估结束后可直接发布结果，状态变为"已发布"
 - **高亮显示**：当前操作的轮次高亮显示，点击轮次按钮自动更新高亮
 - **评估记录**：记录每次评估的场次、轮次、评估值和时间
 - **数据存储**：使用 JSON 文件存储评估数据（`data/database.json`）
@@ -88,7 +88,6 @@ ai_evaluator/
 | session_id | UUID | 场编号 |
 | round_number | number | 轮次（从1开始） |
 | status | number | 轮次状态（0-5） |
-| submit | number | 发布状态（0=未发布，1=已发布） |
 | created_at | string | 创建时间 |
 | performance_start_time | string | 演出开始时间 |
 | performance_end_time | string | 演出结束时间 |
@@ -96,6 +95,8 @@ ai_evaluator/
 | evaluation_end_time | string | 评估结束时间 |
 | round_end_time | string | 轮次结束时间 |
 | score | number | AI评估分数 |
+
+> 注：`submit` 字段已废弃，发布状态通过 `status=5` 表示
 
 ### 常规评估列表 (RegularEvaluation)
 | 字段 | 类型 | 说明 |
@@ -145,7 +146,7 @@ ai_evaluator/
 
 ### 轮次接口
 - `GET /api/rounds?sessionId=xxx` - 获取指定场次的轮次列表
-- `POST /api/rounds` - 创建或更新轮次（action: create/startPerformance/endPerformance/startEvaluation/endRound/publish）
+- `POST /api/rounds` - 创建或更新轮次（action: create/startPerformance/endPerformance/startEvaluation/publish）
 
 ### 轮次状态说明
 | 状态值 | 说明 |
@@ -154,8 +155,8 @@ ai_evaluator/
 | 1 | 演出中 |
 | 2 | 演出结束 |
 | 3 | 评估中 |
-| 4 | 评估结束 |
-| 5 | 本轮结束 |
+| 4 | 已评估 |
+| 5 | 已发布 |
 
 ### 日志接口
 - `GET /api/logs` - 获取日志（可选参数：from=时间戳，返回该时间点之后的日志）
@@ -235,17 +236,15 @@ package-production.bat
 2. 点击"开始采集"启动视频流
 3. 支持左转/右转90度旋转视频
 
-### 场次和轮次管理
+### 场次和演出管理
 1. 点击"新建场次"创建评估场次
-2. 选择场次后，点击"新建轮次"创建新轮次
+2. 选择场次后，点击"新建演出"创建新轮次
 3. 点击轮次卡片可高亮选中当前轮次
-4. 轮次操作流程：
+4. 演出操作流程：
    - 点击"开始演出"开始录制
    - 点击"结束演出"停止录制
    - 点击"开始评估"进行 AI 评分
-   - 点击"结束本轮"结束当前轮次
-   - 轮次结束后可点击"发布"发布评估结果
-5. 每个轮次显示发布状态（已发布/未发布）
+   - 评估完成后点击"发布"发布评估结果，状态变为"已发布"
 
 ### AI评估
 1. 点击"新建场次"创建评估场次
