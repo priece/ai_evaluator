@@ -322,7 +322,7 @@ export const publishRound = async (roundId: string): Promise<Round> => {
   const round = rounds.find(r => r.id === roundId);
 
   if (round) {
-    round.submit = 1;
+    round.status = 5;
     lastPublishedRoundId = roundId;
     saveToFile();
   }

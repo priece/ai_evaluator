@@ -44,7 +44,7 @@ export const RoundStatusLabels: Record<RoundStatus, string> = {
   [RoundStatus.PERFORMANCE_ENDED]: '演出结束',
   [RoundStatus.EVALUATING]: '评估中',
   [RoundStatus.EVALUATED]: '已评估',
-  [RoundStatus.ROUND_ENDED]: '本轮结束'
+  [RoundStatus.ROUND_ENDED]: '已发布'
 };
 
 export interface RegularEvaluation {

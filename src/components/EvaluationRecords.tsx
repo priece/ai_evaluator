@@ -19,7 +19,7 @@ export default function EvaluationRecords() {
           setSessions(data.sessions);
         }
       } catch (error) {
-        console.error('获取场次列表失败:', error);
+        console.error('Failed to get session list:', error);
       }
     };
 
@@ -36,7 +36,7 @@ export default function EvaluationRecords() {
         setExpertEvaluations(data.expertEvaluations || []);
       }
     } catch (error) {
-      console.error('获取评估数据失败:', error);
+      console.error('Failed to get evaluation data:', error);
     }
   };
 

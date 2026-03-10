@@ -38,7 +38,7 @@ export async function GET() {
       } : null
     });
   } catch (error) {
-    console.error('获取大屏数据失败:', error);
+    console.error('Failed to get screen data:', error);
     return NextResponse.json(
       { success: false, message: '获取数据失败' },
       { status: 500 }

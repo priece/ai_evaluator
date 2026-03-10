@@ -28,7 +28,7 @@ export default function Home() {
         }
       }
     } catch (error) {
-      console.error('检查登录状态失败:', error);
+      console.error('Failed to check login status:', error);
     } finally {
       setLoading(false);
     }
@@ -43,14 +43,14 @@ export default function Home() {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
     } catch (error) {
-      console.error('登出失败:', error);
+      console.error('Failed to logout:', error);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-500">加载中...</div>
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="text-gray-400">加载中...</div>
       </div>
     );
   }

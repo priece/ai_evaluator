@@ -75,7 +75,7 @@ function writeToFile(logLine: string): void {
     
     fs.appendFileSync(logPath, logLine + '\n', 'utf-8');
   } catch (error) {
-    console.error('写入日志文件失败:', error);
+    console.error('Failed to write log file:', error);
   }
 }
 

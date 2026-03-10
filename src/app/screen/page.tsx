@@ -40,7 +40,7 @@ export default function ScreenPage() {
         setData(result);
       }
     } catch (error) {
-      console.error('获取大屏数据失败:', error);
+      console.error('Failed to get screen data:', error);
     }
   };
 
@@ -55,7 +55,7 @@ export default function ScreenPage() {
         });
       }
     } catch (error) {
-      console.error('获取配置失败:', error);
+      console.error('Failed to get config:', error);
     }
   };
 

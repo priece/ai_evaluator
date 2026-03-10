@@ -50,7 +50,7 @@ export async function GET() {
       motions
     });
   } catch (error) {
-    console.error('读取配置失败:', error);
+    console.error('Failed to read config:', error);
     return NextResponse.json(
       { success: false, message: '读取配置失败' },
       { status: 500 }

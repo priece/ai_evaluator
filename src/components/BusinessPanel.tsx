@@ -58,6 +58,46 @@ export default function BusinessPanel({
   const [evaluatingRoundId, setEvaluatingRoundId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!evaluatingRoundId) return;
+    
+    const handleKeyDown = async (event: KeyboardEvent) => {
+      const key = event.key;
+      if (key >= '0' && key <= '9') {
+        const k = parseInt(key);
+        const randomDecimal = Math.floor(Math.random() * 10);
+        const score = k * 10 + randomDecimal;
+        
+        try {
+          const res = await fetch('/api/rounds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'submitScore', roundId: evaluatingRoundId, score }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            if (selectedSession) {
+              fetchRounds(selectedSession.session_id);
+              fetchSessions();
+              if (data.round) {
+                onRoundChange(data.round);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to submit score:', error);
+        } finally {
+          setEvaluatingRoundId(null);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [evaluatingRoundId, selectedSession]);
+
+  useEffect(() => {
     fetchSessions();
   }, []);
 
@@ -77,7 +117,7 @@ export default function BusinessPanel({
         setSessions(data.sessions);
       }
     } catch (error) {
-      console.error('获取场次列表失败:', error);
+      console.error('Failed to get session list:', error);
     }
   };
 
@@ -95,7 +135,7 @@ export default function BusinessPanel({
         }
       }
     } catch (error) {
-      console.error('获取轮次列表失败:', error);
+      console.error('Failed to get round list:', error);
     }
   };
 
@@ -118,7 +158,7 @@ export default function BusinessPanel({
         onSessionChange(data.session);
       }
     } catch (error) {
-      console.error('创建场次失败:', error);
+      console.error('Failed to create session:', error);
     }
   };
 
@@ -150,7 +190,7 @@ export default function BusinessPanel({
         }
       }
     } catch (error) {
-      console.error('创建轮次失败:', error);
+      console.error('Failed to create round:', error);
     }
   };
 
@@ -158,6 +198,7 @@ export default function BusinessPanel({
     try {
       if (action === 'startEvaluation') {
         setEvaluatingRoundId(roundId);
+        return;
       }
       
       const body: any = { action, roundId };
@@ -184,41 +225,43 @@ export default function BusinessPanel({
         }
       }
     } catch (error) {
-      console.error('更新轮次状态失败:', error);
+      console.error('Failed to update round status:', error);
     } finally {
-      setEvaluatingRoundId(null);
+      if (action === 'submitScore') {
+        setEvaluatingRoundId(null);
+      }
     }
   };
 
   const getStatusBadgeClass = (status: number) => {
     const classes: Record<number, string> = {
-      [RoundStatus.NOT_STARTED]: 'bg-gray-100 text-gray-800',
-      [RoundStatus.PERFORMING]: 'bg-blue-100 text-blue-800',
-      [RoundStatus.PERFORMANCE_ENDED]: 'bg-yellow-100 text-yellow-800',
-      [RoundStatus.EVALUATING]: 'bg-purple-100 text-purple-800',
-      [RoundStatus.EVALUATED]: 'bg-green-100 text-green-800',
-      [RoundStatus.ROUND_ENDED]: 'bg-red-100 text-red-800',
+      [RoundStatus.NOT_STARTED]: 'bg-gray-700 text-gray-300',
+      [RoundStatus.PERFORMING]: 'bg-blue-900 text-blue-300',
+      [RoundStatus.PERFORMANCE_ENDED]: 'bg-yellow-900 text-yellow-300',
+      [RoundStatus.EVALUATING]: 'bg-purple-900 text-purple-300',
+      [RoundStatus.EVALUATED]: 'bg-green-900 text-green-300',
+      [RoundStatus.ROUND_ENDED]: 'bg-red-900 text-red-300',
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || 'bg-gray-700 text-gray-300';
   };
 
   return (
     <div className="h-full flex flex-col space-y-4">
       {/* 场次管理 */}
-      <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 border border-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">场次管理</h2>
+          <h2 className="text-lg font-semibold text-gray-100">场次管理</h2>
           <div className="flex gap-2">
             <button
               onClick={() => window.open('/screen', '_blank', 'width=1920,height=1080')}
-              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
               跳转大屏
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={!isAdmin}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               新建场次
             </button>
@@ -231,7 +274,7 @@ export default function BusinessPanel({
             const session = sessions.find(s => s.session_id === e.target.value);
             onSessionChange(session || null);
           }}
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-[#252525] border border-gray-600 rounded-lg px-3 py-2 text-gray-100"
         >
           <option value="">请选择场次</option>
           {sessions.map((s) => {
@@ -244,24 +287,26 @@ export default function BusinessPanel({
         </select>
 
         {selectedSession && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">场次名称：</span>{selectedSession.name}
+          <div className="mt-4 p-3 bg-[#252525] rounded-lg border border-gray-700">
+            <div className="text-sm text-gray-400">
+              <span className="font-medium text-gray-300">场次名称：</span>{selectedSession.name}
             </div>
-            <div className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">当前轮次：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">创建时间：</span>{selectedSession.created_at}
+            <div className="text-sm text-gray-400 mt-1 flex justify-between">
+              <div>
+                <span className="font-medium text-gray-300">当前演出：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
+              </div>
+              <div>
+                <span className="font-medium text-gray-300">创建时间：</span>{selectedSession.created_at}
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* 轮次管理 */}
-      <div className="bg-white rounded-lg shadow-md p-4 flex-1 overflow-auto">
+      {/* 演出管理 */}
+      <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 flex-1 overflow-auto border border-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">轮次管理</h2>
+          <h2 className="text-lg font-semibold text-gray-100">演出管理</h2>
           {selectedSession && (() => {
             const maxRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0;
             let canCreateRound = false;
@@ -275,9 +320,9 @@ export default function BusinessPanel({
               <button
                 onClick={createNewRound}
                 disabled={!canCreateRound || !isAdmin}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                新建轮次
+                新建演出
               </button>
             );
           })()}
@@ -285,7 +330,7 @@ export default function BusinessPanel({
 
         {rounds.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
-            {selectedSession ? '暂无轮次，请创建新轮次' : '请先选择场次'}
+            {selectedSession ? '暂无演出，请新建演出' : '请先选择场次'}
           </div>
         ) : (
           <div className="space-y-3">
@@ -293,30 +338,27 @@ export default function BusinessPanel({
               <div 
                 key={round.id} 
                 className={`border rounded-lg p-3 cursor-pointer transition ${
-                  highlightRound?.id === round.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                  highlightRound?.id === round.id ? 'border-blue-500 bg-blue-950' : 'border-gray-700 hover:border-gray-600 bg-[#252525]'
                 }`}
                 onClick={() => onRoundChange(round)}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="font-medium">第 {round.round_number} 轮</span>
+                    <span className="font-medium text-gray-100">第 {round.round_number} 轮</span>
                     <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${getStatusBadgeClass(round.status)}`}>
                       {RoundStatusLabels[round.status as RoundStatus]}
                     </span>
-                    {round.submit === 1 && (
-                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800">
-                        已发布
-                      </span>
-                    )}
-                    {round.submit === 0 && (
-                      <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
-                        未发布
-                      </span>
-                    )}
                   </div>
-                  {round.score !== null && (
-                    <span className="text-lg font-bold text-blue-600">{round.score} 分</span>
-                  )}
+                  <div className="text-lg font-bold text-blue-400">
+                    {round.status === RoundStatus.PERFORMING ? (
+                      <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : round.score !== null ? (
+                      `${round.score} 分`
+                    ) : null}
+                  </div>
                 </div>
 
                 {/* 操作按钮 */}
@@ -325,7 +367,7 @@ export default function BusinessPanel({
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startPerformance'); }}
                       disabled={!isAdmin}
-                      className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       开始演出
                     </button>
@@ -334,7 +376,7 @@ export default function BusinessPanel({
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'endPerformance'); }}
                       disabled={!isAdmin}
-                      className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       结束演出
                     </button>
@@ -343,14 +385,14 @@ export default function BusinessPanel({
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
                       disabled={evaluatingRoundId === round.id || !isAdmin}
-                      className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {evaluatingRoundId === round.id ? '评估中...' : '开始评估'}
                     </button>
                   )}
                   {round.status === RoundStatus.EVALUATING && (
-                    <span className="px-3 py-1 text-xs text-purple-600 animate-pulse">
-                      AI 正在评估中...
+                    <span className="px-3 py-1 text-xs text-purple-400 animate-pulse">
+                      等待键盘输入(0-9)...
                     </span>
                   )}
                   {round.status === RoundStatus.EVALUATED && (
@@ -358,27 +400,18 @@ export default function BusinessPanel({
                       <button
                         onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startEvaluation'); }}
                         disabled={evaluatingRoundId === round.id || !isAdmin}
-                        className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'endRound'); }}
-                        disabled={evaluatingRoundId === round.id || !isAdmin}
-                        className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); }}
+                        disabled={!isAdmin}
+                        className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        结束本轮
+                        发布
                       </button>
                     </>
-                  )}
-                  {round.status === RoundStatus.ROUND_ENDED && highlightRound?.id === round.id && round.submit === 0 && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); }}
-                      disabled={!isAdmin}
-                      className="px-3 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      发布
-                    </button>
                   )}
                 </div>
               </div>
@@ -389,26 +422,26 @@ export default function BusinessPanel({
 
       {/* 新建场次弹窗 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">新建场次</h3>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#1a1a1a] rounded-lg p-6 w-96 border border-gray-700">
+            <h3 className="text-lg font-semibold mb-4 text-gray-100">新建场次</h3>
             <input
               type="text"
               value={newSessionName}
               onChange={(e) => setNewSessionName(e.target.value)}
               placeholder="请输入场次名称"
-              className="w-full border rounded-lg px-3 py-2 mb-4"
+              className="w-full bg-[#252525] border border-gray-600 rounded-lg px-3 py-2 mb-4 text-gray-100 placeholder-gray-500"
             />
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
               >
                 取消
               </button>
               <button
                 onClick={createSession}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 确定
               </button>

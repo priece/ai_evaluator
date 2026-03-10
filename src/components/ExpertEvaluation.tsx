@@ -48,7 +48,7 @@ export default function ExpertEvaluation() {
           setSelectedCamera(data.cameras[0].id);
         }
       } catch (error) {
-        console.error('获取摄像头列表失败:', error);
+        console.error('Failed to get camera list:', error);
       }
     };
 
@@ -65,7 +65,7 @@ export default function ExpertEvaluation() {
           setSessions(data.sessions);
         }
       } catch (error) {
-        console.error('获取场次列表失败:', error);
+        console.error('Failed to get session list:', error);
       }
     };
 
@@ -89,7 +89,7 @@ export default function ExpertEvaluation() {
         }
       }
     } catch (error) {
-      console.error('获取评估数据失败:', error);
+      console.error('Failed to get evaluation data:', error);
     }
   };
 
@@ -109,7 +109,7 @@ export default function ExpertEvaluation() {
               const content = await res.text();
               // 检查 m3u8 内容中是否有 ts 文件
               if (content.includes('.ts')) {
-                console.log('检测到 m3u8 文件和 ts 切片，开始播放');
+                console.log('m3u8 file and TS segment detected, starting playback');
                 // 清除轮询
                 if (pollingRef.current) {
                   clearInterval(pollingRef.current);
@@ -138,7 +138,7 @@ export default function ExpertEvaluation() {
               }
             }
           } catch (error) {
-            console.error('轮询 m3u8 文件失败:', error);
+            console.error('Failed to poll m3u8 file:', error);
           }
         }, 3000); // 每 3 秒轮询一次
       };
@@ -186,7 +186,7 @@ export default function ExpertEvaluation() {
         alert(data.message);
       }
     } catch (error) {
-      console.error('启动摄像头失败:', error);
+      console.error('Failed to start camera:', error);
       alert('无法启动摄像头');
     }
   };
@@ -201,7 +201,7 @@ export default function ExpertEvaluation() {
         setIsCapturing(false);
       }
     } catch (error) {
-      console.error('停止摄像头失败:', error);
+      console.error('Failed to stop camera:', error);
     }
   };
 
@@ -229,7 +229,7 @@ export default function ExpertEvaluation() {
         fetchSessionEvaluations(session.session_id);
       }
     } catch (error) {
-      console.error('提交评估失败:', error);
+      console.error('Failed to submit evaluation:', error);
     }
   };
 
@@ -266,7 +266,7 @@ export default function ExpertEvaluation() {
         alert(data.message || '创建场次失败');
       }
     } catch (error) {
-      console.error('创建场次失败:', error);
+      console.error('Failed to create session:', error);
       alert('创建场次失败');
     }
   };

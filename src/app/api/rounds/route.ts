@@ -124,9 +124,17 @@ export async function POST(request: Request) {
           );
         }
         await startEvaluation(roundId);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const randomScore = generateNormalScore();
-        await endEvaluation(roundId, randomScore);
+        const evalStartedRound = await getRound(roundId);
+        return NextResponse.json({ success: true, round: evalStartedRound });
+        
+      case 'submitScore':
+        if (!roundId || score === undefined) {
+          return NextResponse.json(
+            { success: false, message: '缺少必要参数' },
+            { status: 400 }
+          );
+        }
+        await endEvaluation(roundId, score);
         const evalResult = await getRound(roundId);
         return NextResponse.json({ success: true, round: evalResult });
         

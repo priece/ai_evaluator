@@ -60,7 +60,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         }
       }
     } catch (error) {
-      console.error('获取日志失败:', error);
+      console.error('Failed to get logs:', error);
     }
   };
 
@@ -82,19 +82,41 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
     }
   }, [logs]);
 
+  const renderLog = (log: string) => {
+    const match = log.match(/^(\[[\d\-\.:\s]+\])\s*(\[[A-Z]+\])\s*(.*)$/);
+    if (match) {
+      const [, timestamp, level, message] = match;
+      let levelColor = 'text-gray-400';
+      if (level === '[INFO]') levelColor = 'text-green-400';
+      else if (level === '[ERROR]') levelColor = 'text-red-400';
+      else if (level === '[WARN]') levelColor = 'text-yellow-400';
+      else if (level === '[DEBUG]') levelColor = 'text-blue-400';
+      
+      return (
+        <>
+          <span className="text-cyan-500">{timestamp}</span>
+          <span className="text-gray-500"> </span>
+          <span className={levelColor}>{level}</span>
+          <span className="text-gray-400"> {message}</span>
+        </>
+      );
+    }
+    return log;
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-screen flex flex-col bg-[#0f0f0f]">
       {/* 顶部导航栏 */}
-      <nav className="bg-white shadow-md h-14 flex-shrink-0">
+      <nav className="bg-[#1a1a1a] shadow-md h-14 flex-shrink-0 border-b border-gray-800">
         <div className="h-full px-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-blue-600">AI评委数据采集分析系统</h1>
+          <h1 className="text-xl font-bold text-blue-400">AI评委数据采集分析系统</h1>
           <div className="flex items-center space-x-4">
-            <span className="text-gray-600 text-sm">
+            <span className="text-gray-400 text-sm">
               欢迎，{user.username} ({user.role === 'admin' ? '管理员' : '访客'})
             </span>
             <button
               onClick={onLogout}
-              className="px-4 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              className="px-4 py-1.5 text-sm bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition"
             >
               退出登录
             </button>
@@ -105,7 +127,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
       {/* 主内容区域 - 三列布局 */}
       <main className="flex-1 flex overflow-hidden">
         {/* 左侧：视频监看区域 */}
-        <div className="w-2/5 p-4 border-r border-gray-200">
+        <div className="w-2/5 p-4 border-r border-gray-800">
           <VideoMonitor 
             selectedSession={selectedSession}
             currentRound={currentRound}
@@ -115,7 +137,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         </div>
 
         {/* 中间：场次管理区域 */}
-        <div className="w-2/5 p-4 overflow-auto border-r border-gray-200">
+        <div className="w-2/5 p-4 overflow-auto border-r border-gray-800">
           <BusinessPanel 
             selectedSession={selectedSession}
             currentRound={currentRound}
@@ -131,14 +153,14 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         <div className="w-1/5 p-4 overflow-hidden flex flex-col">
           <div 
             ref={logContainerRef}
-            className="flex-1 bg-gray-900 rounded-lg p-3 overflow-y-auto font-mono text-xs text-gray-300"
+            className="flex-1 bg-[#1a1a1a] rounded-lg p-3 overflow-y-auto font-mono text-xs text-gray-400 border border-gray-800"
           >
             {logs.length === 0 ? (
-              <div className="text-gray-500">暂无日志</div>
+              <div className="text-gray-600">暂无日志</div>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className="whitespace-pre-wrap break-all py-0.5">
-                  {log}
+                  {renderLog(log)}
                 </div>
               ))
             )}
