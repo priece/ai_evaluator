@@ -33,6 +33,14 @@ if exist "audio" (
     echo audio not found
 )
 
+if exist "snapshot" (
+    echo Cleaning snapshot...
+    rmdir /s /q "snapshot"
+    echo snapshot cleaned
+) else (
+    echo snapshot not found
+)
+
 if exist "ai-evaluator-production" (
     echo Cleaning ai-evaluator-production...
     rmdir /s /q "ai-evaluator-production"
