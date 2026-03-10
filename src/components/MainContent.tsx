@@ -89,36 +89,45 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
 
   const renderLog = (log: string) => {
     // 匹配格式: [2026-03-10 19:44:00.123] [INFO] message
-    const match = log.match(/^(\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}\])\s*(\[[A-Z]+\])?\s*(.*)$/);
-    if (match) {
-      const [, timestamp, level, message] = match;
-      
-      // 如果没有 level，直接显示时间戳和消息
-      if (!level) {
-        return (
-          <>
-            <span className="text-cyan-500">{timestamp}</span>
-            <span className="text-gray-400"> {message}</span>
-          </>
-        );
-      }
-      
-      let levelColor = 'text-gray-400';
-      if (level === '[INFO]') levelColor = 'text-green-400';
-      else if (level === '[ERROR]') levelColor = 'text-red-400';
-      else if (level === '[WARN]') levelColor = 'text-yellow-400';
-      else if (level === '[DEBUG]') levelColor = 'text-blue-400';
-      
+    // 使用非贪婪匹配，只匹配第一个时间戳和第一个日志级别
+    const timestampMatch = log.match(/^\s*(\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}\])/);
+    
+    if (!timestampMatch) {
+      return <span className="text-gray-400">{log}</span>;
+    }
+    
+    const timestamp = timestampMatch[1];
+    const afterTimestamp = log.slice(timestampMatch[0].length);
+    
+    // 在时间戳后查找日志级别
+    const levelMatch = afterTimestamp.match(/^\s*(\[(INFO|ERROR|WARN|DEBUG)\])/);
+    
+    if (!levelMatch) {
       return (
         <>
           <span className="text-cyan-500">{timestamp}</span>
-          <span className="text-gray-500"> </span>
-          <span className={levelColor}>{level}</span>
-          <span className="text-gray-400"> {message}</span>
+          <span className="text-gray-400">{afterTimestamp}</span>
         </>
       );
     }
-    return <span className="text-gray-400">{log}</span>;
+    
+    const level = levelMatch[1];
+    const rest = afterTimestamp.slice(levelMatch[0].length);
+    
+    let levelColor = 'text-gray-400';
+    if (level === '[INFO]') levelColor = 'text-green-400';
+    else if (level === '[ERROR]') levelColor = 'text-red-400';
+    else if (level === '[WARN]') levelColor = 'text-yellow-400';
+    else if (level === '[DEBUG]') levelColor = 'text-blue-400';
+    
+    return (
+      <>
+        <span className="text-cyan-500">{timestamp}</span>
+        <span className="text-gray-500"> </span>
+        <span className={levelColor}>{level}</span>
+        <span className="text-gray-400">{rest}</span>
+      </>
+    );
   };
 
   return (
