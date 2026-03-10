@@ -4,6 +4,7 @@ import fs from 'fs';
 import { logInfo, logError, logWarn } from './logger';
 import { createRecordDir, startFileWatcher, getHlsDir, cleanHlsDir } from './recorder';
 import { ensureAudioDir, generateAudioFileName, cleanupOldAudioFiles, startAudioCleanupTimer, stopAudioCleanupTimer } from './audioManager';
+import { getUseRecordConfig } from './snapshotManager';
 
 const transposeMap: Record<number, number> = {
   0: 0,
@@ -65,8 +66,16 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
   const hlsDir = getHlsDir();
   cleanHlsDir(hlsDir);
   
-  const recordDir = createRecordDir();
-  state.recordDir = recordDir;
+  // 根据 useRecord 配置决定是否创建录制目录
+  const useRecord = getUseRecordConfig();
+  let recordDir: string | null = null;
+  if (useRecord) {
+    recordDir = createRecordDir();
+    state.recordDir = recordDir;
+    logInfo(`录制功能已启用，录制目录: ${recordDir}`);
+  } else {
+    logInfo('录制功能已禁用');
+  }
   
   const actualRotation = rotation ?? state.rotation;
   state.rotation = actualRotation;
@@ -123,8 +132,11 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
   state.activeCameraId = cameraId;
   state.activeAudioId = audioId;
   
-  const fileWatcher = startFileWatcher(hlsDir, recordDir);
-  state.fileWatcher = fileWatcher;
+  // 只有启用录制时才启动文件监视器
+  if (useRecord && recordDir) {
+    const fileWatcher = startFileWatcher(hlsDir, recordDir);
+    state.fileWatcher = fileWatcher;
+  }
   
   logInfo(`ffmpeg 进程已启动: ${ffmpegCommand.pid}`);
   
@@ -150,7 +162,7 @@ export async function startCapture(cameraId: string, audioId: string | null, rot
     startAudioCapture(cameraId, audioId);
   }
   
-  return { success: true, message: '开始采集成功', rotation: actualRotation, recordDir };
+  return { success: true, message: '开始采集成功', rotation: actualRotation, recordDir: recordDir || undefined };
 }
 
 function startAudioCapture(cameraId: string, audioId: string): void {

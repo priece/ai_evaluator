@@ -1,4 +1,6 @@
 {
+    "useRecord": false,
+    "useSnapshot": true,
     "screen": {
         "background": "./public/background/background.png",
         "motions": [

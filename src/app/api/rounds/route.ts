@@ -11,9 +11,11 @@ import {
   endRound,
   publishRound,
   updateRound,
-  clearLastPublishedRound
+  clearLastPublishedRound,
+  getSession
 } from '@/lib/db';
-import { logError } from '@/lib/logger';
+import { logError, logInfo } from '@/lib/logger';
+import { startSnapshot, stopSnapshot, getUseSnapshotConfig } from '@/lib/snapshotManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,6 +106,16 @@ export async function POST(request: Request) {
         }
         await startPerformance(roundId);
         const startedRound = await getRound(roundId);
+        
+        // 启动 snapshot 采集
+        if (startedRound && getUseSnapshotConfig()) {
+          const session = await getSession(startedRound.session_id);
+          if (session) {
+            const snapshotResult = startSnapshot(session.name, startedRound.round_number);
+            logInfo(`snapshot 启动结果: ${snapshotResult.message}`);
+          }
+        }
+        
         return NextResponse.json({ success: true, round: startedRound });
         
       case 'endPerformance':
@@ -115,6 +127,13 @@ export async function POST(request: Request) {
         }
         await endPerformance(roundId);
         const endedPerfRound = await getRound(roundId);
+        
+        // 停止 snapshot 采集
+        if (getUseSnapshotConfig()) {
+          const snapshotResult = stopSnapshot();
+          logInfo(`snapshot 停止结果: ${snapshotResult.message}`);
+        }
+        
         return NextResponse.json({ success: true, round: endedPerfRound });
         
       case 'startEvaluation':
