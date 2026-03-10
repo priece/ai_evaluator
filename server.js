@@ -35,29 +35,29 @@ async function stopFFmpeg() {
   try {
     const { stopCapture } = require('./src/lib/cameraManager');
     await stopCapture();
-    log.logInfo('服务器退出，ffmpeg 进程已停止');
+    log.logInfo('Server exiting, ffmpeg process stopped');
   } catch (error) {
-    log.logError(`停止 ffmpeg 进程失败: ${error}`);
+    log.logError(`Failed to stop ffmpeg process: ${error}`);
   }
 }
 
 process.on('SIGINT', async () => {
   const log = getLogger();
-  log.logInfo('收到 SIGINT 信号，准备退出...');
+  log.logInfo('Received SIGINT signal, preparing to exit...');
   await stopFFmpeg();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   const log = getLogger();
-  log.logInfo('收到 SIGTERM 信号，准备退出...');
+  log.logInfo('Received SIGTERM signal, preparing to exit...');
   await stopFFmpeg();
   process.exit(0);
 });
 
 process.on('exit', (code) => {
   const log = getLogger();
-  log.logInfo(`进程退出，退出码: ${code}`);
+  log.logInfo(`Process exiting, exit code: ${code}`);
 });
 
 app.prepare().then(() => {
@@ -101,6 +101,6 @@ app.prepare().then(() => {
 
   server.listen(PORT, (err) => {
     if (err) throw err;
-    log.logInfo(`服务器启动: http://localhost:${PORT}`);
+    log.logInfo(`Server started: http://localhost:${PORT}`);
   });
 });

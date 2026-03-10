@@ -88,9 +88,21 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
   }, [logs]);
 
   const renderLog = (log: string) => {
-    const match = log.match(/^(\[[\d\-\.:\s]+\])\s*(\[[A-Z]+\])\s*(.*)$/);
+    // 匹配格式: [2026-03-10 19:44:00.123] [INFO] message
+    const match = log.match(/^(\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}\])\s*(\[[A-Z]+\])?\s*(.*)$/);
     if (match) {
       const [, timestamp, level, message] = match;
+      
+      // 如果没有 level，直接显示时间戳和消息
+      if (!level) {
+        return (
+          <>
+            <span className="text-cyan-500">{timestamp}</span>
+            <span className="text-gray-400"> {message}</span>
+          </>
+        );
+      }
+      
       let levelColor = 'text-gray-400';
       if (level === '[INFO]') levelColor = 'text-green-400';
       else if (level === '[ERROR]') levelColor = 'text-red-400';
@@ -106,7 +118,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         </>
       );
     }
-    return log;
+    return <span className="text-gray-400">{log}</span>;
   };
 
   return (
