@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface MotionConfig {
   id: string;
   image: string;
+  frames: string[];
 }
 
 interface ScreenConfig {
@@ -31,6 +32,8 @@ export default function ScreenPage() {
   const [data, setData] = useState<ScreenData | null>(null);
   const [config, setConfig] = useState<ScreenConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchScreenData = async () => {
     try {
@@ -72,15 +75,37 @@ export default function ScreenPage() {
     }
   }, [data, config]);
 
-  // 根据分数获取对应的 motion 图片
-  const getMotionImage = (score: number | null): string | null => {
+  const getMotionByScore = (score: number | null): MotionConfig | null => {
     if (score === null || !config) return null;
     
-    // 将分数转换为整数，例如 5.4 -> 5
-    const scoreInt = Math.floor(score);
-    const motion = config.motions.find(m => m.id === String(scoreInt));
-    return motion?.image || null;
+    if (score >= 0 && score <= 39) {
+      return config.motions.find(m => m.id === 'motion_00') || null;
+    } else if (score >= 40 && score <= 79) {
+      return config.motions.find(m => m.id === 'motion_01') || null;
+    } else if (score >= 80 && score <= 100) {
+      return config.motions.find(m => m.id === 'motion_02') || null;
+    }
+    return null;
   };
+
+  const currentMotion = getMotionByScore(data?.round?.score || null);
+  const frames = currentMotion?.frames || [];
+
+  useEffect(() => {
+    if (frames.length === 0) return;
+
+    const animate = () => {
+      setCurrentFrame(prev => (prev + 1) % frames.length);
+    };
+
+    animationRef.current = setInterval(animate, 100);
+
+    return () => {
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+      }
+    };
+  }, [frames.length]);
 
   if (loading) {
     return (
@@ -94,7 +119,7 @@ export default function ScreenPage() {
         }}
       >
         <div className="absolute inset-0 bg-black/50"></div>
-        <div className="text-white text-3xl font-bold animate-pulse z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">加载中...</div>
+        <div className="text-white text-3xl font-bold animate-pulse z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Loading...</div>
       </div>
     );
   }
@@ -112,15 +137,14 @@ export default function ScreenPage() {
       >
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="text-center z-10">
-          <div className="text-white text-6xl font-bold mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">尚未发布</div>
-          <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">等待最新轮次发布结果...</div>
+          <div className="text-white text-6xl font-bold mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Not Published</div>
+          <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Waiting for latest round result...</div>
         </div>
       </div>
     );
   }
 
   const { round } = data;
-  const motionImage = getMotionImage(round?.score || null);
 
   return (
     <div 
@@ -134,7 +158,6 @@ export default function ScreenPage() {
     >
       <div className="absolute inset-0 bg-black/50"></div>
       <div className="flex items-center justify-center gap-16 z-10">
-        {/* 评分显示 */}
         <div className="w-96 h-96 flex flex-col items-center justify-center">
           <div className="text-white/90 text-3xl mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
           <div className="text-8xl font-bold text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
@@ -143,11 +166,10 @@ export default function ScreenPage() {
           <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
         </div>
 
-        {/* Motion 图片 */}
-        {motionImage && (
+        {frames.length > 0 && (
           <div className="w-96 h-96 flex items-center justify-center">
             <img 
-              src={motionImage} 
+              src={frames[currentFrame]} 
               alt="motion" 
               className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
             />

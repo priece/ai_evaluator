@@ -15,6 +15,7 @@
 - **评估记录**：记录每次评估的场次、轮次、评估值和时间
 - **数据存储**：使用 JSON 文件存储评估数据（`data/database.json`）
 - **自定义日志系统**：支持文件和内存日志，保留30条最新日志，支持增量获取
+- **大屏显示**：支持独立大屏页面，显示 AI 评分和 PNG 序列动画，根据分数区间显示不同动画效果
 - **生产部署**：支持一键打包部署
 
 ## 技术栈
@@ -44,6 +45,8 @@ ai_evaluator/
 │   │   │   └── sessions/       # 场次管理接口
 │   │   ├── layout.tsx          # 根布局
 │   │   ├── page.tsx            # 主页面
+│   │   ├── screen/             # 大屏页面
+│   │   │   └── page.tsx        # 大屏显示组件
 │   │   └── globals.css         # 全局样式
 │   ├── components/             # React 组件
 │   │   ├── BusinessPanel.tsx   # 业务面板组件
@@ -160,6 +163,34 @@ ai_evaluator/
 
 ### 日志接口
 - `GET /api/logs` - 获取日志（可选参数：from=时间戳，返回该时间点之后的日志）
+
+### 大屏接口
+- `GET /api/screen` - 获取大屏数据（已发布的轮次信息）
+- `GET /api/screen/config` - 获取大屏配置（背景图、动画序列等）
+
+#### 大屏动画配置
+在 `config.json` 中配置：
+```json
+{
+  "screen": {
+    "background": "./public/background/background.png",
+    "motions": [
+      { "id": "motion_00", "image": "./public/motions/motion_00/" },
+      { "id": "motion_01", "image": "./public/motions/motion_01/" },
+      { "id": "motion_02", "image": "./public/motions/motion_02/" }
+    ]
+  }
+}
+```
+
+每个 motion 文件夹下放置 PNG 序列图片（文件名为数字），系统会自动循环播放。
+
+#### 分数区间动画
+| 分数区间 | 动画 |
+|---------|------|
+| 0-39 | motion_00 |
+| 40-79 | motion_01 |
+| 80-100 | motion_02 |
 
 ## 安装与运行
 

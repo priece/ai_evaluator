@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 interface MotionConfig {
   id: string;
   image: string;
+  frames: string[];
 }
 
 interface ScreenConfig {
@@ -15,7 +16,13 @@ interface ScreenConfig {
 }
 
 interface ConfigData {
-  screen: ScreenConfig;
+  screen: {
+    background: string;
+    motions: {
+      id: string;
+      image: string;
+    }[];
+  };
 }
 
 export async function GET() {
@@ -24,7 +31,7 @@ export async function GET() {
     
     if (!fs.existsSync(configPath)) {
       return NextResponse.json(
-        { success: false, message: '配置文件不存在' },
+        { success: false, message: 'Config file not found' },
         { status: 404 }
       );
     }
@@ -32,17 +39,36 @@ export async function GET() {
     const configContent = fs.readFileSync(configPath, 'utf-8');
     const config: ConfigData = JSON.parse(configContent);
 
-    // 转换路径为可访问的 URL 路径
     const background = config.screen.background
       .replace('./public/', '/')
       .replace('\\', '/');
     
-    const motions = config.screen.motions.map((motion: MotionConfig) => ({
-      id: motion.id,
-      image: motion.image
-        .replace('./public/', '/')
-        .replace('\\', '/')
-    }));
+    const motions: MotionConfig[] = config.screen.motions.map((motion) => {
+      const imagePath = motion.image.replace('./public/', '');
+      const fullPath = path.join(process.cwd(), 'public', imagePath);
+      
+      let frames: string[] = [];
+      
+      if (fs.existsSync(fullPath)) {
+        const files = fs.readdirSync(fullPath)
+          .filter(file => file.endsWith('.png'))
+          .sort((a, b) => {
+            const numA = parseInt(a.replace(/\D/g, ''), 10);
+            const numB = parseInt(b.replace(/\D/g, ''), 10);
+            return numA - numB;
+          });
+        
+        frames = files.map(file => `/${imagePath}${file}`.replace(/\\/g, '/'));
+      }
+      
+      return {
+        id: motion.id,
+        image: motion.image
+          .replace('./public/', '/')
+          .replace('\\', '/'),
+        frames
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -52,7 +78,7 @@ export async function GET() {
   } catch (error) {
     console.error('Failed to read config:', error);
     return NextResponse.json(
-      { success: false, message: '读取配置失败' },
+      { success: false, message: 'Failed to read config' },
       { status: 500 }
     );
   }
