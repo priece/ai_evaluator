@@ -299,7 +299,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
       const data = await res.json();
       if (data.success) {
         setIsCapturing(false);
-        setShowWaveform(false);
+        // 不再隐藏波形，只是停止轮询更新
         lastAudioMtimeRef.current = 0;
       }
     } catch (error) {
@@ -376,20 +376,12 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
             </div>
           </div>
           
-          {showWaveform && (
-            <div className="mt-2 p-2 bg-[#252525] rounded-lg border border-gray-700">
-              <div className="text-xs font-medium text-gray-400 mb-1">音频波形</div>
-              <div ref={waveformRef} className="w-full" />
-            </div>
-          )}
+          <div className="mt-2 p-2 bg-[#252525] rounded-lg border border-gray-700">
+            <div ref={waveformRef} className="w-full" style={{ minHeight: '30px' }} />
+          </div>
 
-          <div className="mt-3 flex-1 flex flex-col min-h-0">
-            <div className="text-xs font-medium text-gray-400 mb-2">大屏预览</div>
-            <div className="flex-1 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden">
-              <div style={{ height: '100%', aspectRatio: '16/9' }}>
-                <ScreenPreview refreshKey={screenRefreshKey} />
-              </div>
-            </div>
+          <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '260px' }}>
+            <ScreenPreview refreshKey={screenRefreshKey} />
           </div>
         </div>
       </div>
