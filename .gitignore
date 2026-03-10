@@ -45,6 +45,7 @@ next-env.d.ts
 /logs/
 /records/
 /audio/
+/snapshot/
 
 # production build
 ai-evaluator-production/
