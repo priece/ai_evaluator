@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import ScreenPreview from './ScreenPreview';
 
 let videojs: any;
 if (typeof window !== 'undefined') {
@@ -20,9 +21,10 @@ interface VideoMonitorProps {
   currentRound: any;
   user: User;
   onRoundChange: (round: any) => void;
+  screenRefreshKey?: number;
 }
 
-export default function VideoMonitor({ selectedSession, currentRound, user, onRoundChange }: VideoMonitorProps) {
+export default function VideoMonitor({ selectedSession, currentRound, user, onRoundChange, screenRefreshKey }: VideoMonitorProps) {
   const isAdmin = user.role === 'admin';
   const [cameras, setCameras] = useState<{ id: string; name: string }[]>([]);
   const [audioDevices, setAudioDevices] = useState<{ id: string; name: string }[]>([]);
@@ -380,6 +382,15 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
               <div ref={waveformRef} className="w-full" />
             </div>
           )}
+
+          <div className="mt-3 flex-1 flex flex-col min-h-0">
+            <div className="text-xs font-medium text-gray-400 mb-2">大屏预览</div>
+            <div className="flex-1 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden">
+              <div style={{ height: '100%', aspectRatio: '16/9' }}>
+                <ScreenPreview refreshKey={screenRefreshKey} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

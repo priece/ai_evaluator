@@ -16,6 +16,7 @@
 - **数据存储**：使用 JSON 文件存储评估数据（`data/database.json`）
 - **自定义日志系统**：支持文件和内存日志，保留30条最新日志，支持增量获取
 - **大屏显示**：支持独立大屏页面，显示 AI 评分和 PNG 序列动画，根据分数区间显示不同动画效果
+- **大屏预览**：在视频监看区域显示大屏预览，点击发布按钮后自动刷新预览内容
 - **生产部署**：支持一键打包部署
 
 ## 技术栈
@@ -54,6 +55,7 @@ ai_evaluator/
 │   │   ├── ExpertEvaluation.tsx    # 专家评估组件
 │   │   ├── MainContent.tsx     # 主内容组件
 │   │   ├── RegularEvaluation.tsx   # 常规评估组件
+│   │   ├── ScreenPreview.tsx   # 大屏预览组件
 │   │   └── VideoMonitor.tsx    # 视频监看组件
 │   ├── lib/                    # 工具库
 │   │   ├── capture.js          # 视频采集状态管理

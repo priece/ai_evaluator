@@ -20,6 +20,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
   const [currentRound, setCurrentRound] = useState<any>(null);
   const [highlightRound, setHighlightRound] = useState<any>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [screenRefreshKey, setScreenRefreshKey] = useState(0);
   const logPollingRef = useRef<NodeJS.Timeout | null>(null);
   const logContainerRef = useRef<HTMLDivElement>(null);
   const lastLogTimeRef = useRef<string | null>(null);
@@ -37,6 +38,10 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
   const handleRoundUpdate = (round: any) => {
     setCurrentRound(round);
     setHighlightRound(round);
+  };
+
+  const handlePublish = () => {
+    setScreenRefreshKey(prev => prev + 1);
   };
 
   const fetchLogs = async () => {
@@ -133,6 +138,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
             currentRound={currentRound}
             user={user}
             onRoundChange={handleRoundChange}
+            screenRefreshKey={screenRefreshKey}
           />
         </div>
 
@@ -146,6 +152,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
             onSessionChange={handleSessionChange}
             onRoundChange={handleRoundChange}
             onRoundUpdate={handleRoundUpdate}
+            onPublish={handlePublish}
           />
         </div>
 

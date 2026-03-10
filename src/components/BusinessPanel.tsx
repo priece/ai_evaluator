@@ -39,6 +39,7 @@ interface BusinessPanelProps {
   onSessionChange: (session: Session | null) => void;
   onRoundChange: (round: Round | null) => void;
   onRoundUpdate: (round: Round) => void;
+  onPublish?: () => void;
 }
 
 export default function BusinessPanel({ 
@@ -48,7 +49,8 @@ export default function BusinessPanel({
   user,
   onSessionChange, 
   onRoundChange,
-  onRoundUpdate
+  onRoundUpdate,
+  onPublish
 }: BusinessPanelProps) {
   const isAdmin = user.role === 'admin';
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -405,7 +407,7 @@ export default function BusinessPanel({
                         {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); }}
+                        onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); onPublish?.(); }}
                         disabled={!isAdmin}
                         className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
