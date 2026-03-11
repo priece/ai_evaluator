@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     }
     
     const logLines = logs.map(log => {
-      return `[${log.timestamp}] [${log.level}] ${log.message}`;
+      return `${log.level} ${log.timestamp} ${log.message}`;
     });
     
     return NextResponse.json({ 
