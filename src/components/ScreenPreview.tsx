@@ -47,16 +47,22 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
   const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [maskOpacity, setMaskOpacity] = useState(0.8); // 初始mask透明度
+  const [showContent, setShowContent] = useState(false); // 是否显示分数内容
+  const prevRefreshKeyRef = useRef(refreshKey);
 
-  const fetchScreenData = async () => {
+  const fetchScreenData = async (): Promise<ScreenData | null> => {
     try {
       const res = await fetch('/api/screen');
       const result = await res.json();
       if (result.success) {
         setData(result);
+        return result;
       }
+      return null;
     } catch (error) {
       console.error('Failed to get screen data:', error);
+      return null;
     }
   };
 
@@ -75,12 +81,58 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
     }
   };
 
+  // 初始化时获取配置和数据
   useEffect(() => {
-    // 当 refreshKey 变化时（发布操作），重置清除状态并刷新数据
-    setIsCleared(false);
-    setCurrentFrame(0);
-    fetchScreenData();
-    fetchConfig();
+    const init = async () => {
+      await fetchConfig();
+      const screenData = await fetchScreenData();
+      // 如果有已发布的评估，设置初始状态为显示内容
+      if (screenData?.hasPublishedRound) {
+        setMaskOpacity(0.8);
+        setShowContent(true);
+      }
+    };
+    init();
+  }, []);
+
+  // 处理发布动画效果
+  useEffect(() => {
+    // 检测 refreshKey 是否变化（表示新的发布）
+    if (refreshKey !== prevRefreshKeyRef.current) {
+      prevRefreshKeyRef.current = refreshKey;
+      
+      // 重置状态
+      setIsCleared(false);
+      setCurrentFrame(0);
+      setMaskOpacity(0); // 从透明开始
+      setShowContent(false); // 先不显示内容
+      
+      fetchScreenData();
+      fetchConfig();
+      
+      // 开始mask渐变动画：从0到0.8，持续2秒
+      const duration = 2000; // 2秒
+      const targetOpacity = 0.8;
+      const steps = 60; // 动画帧数
+      const interval = duration / steps;
+      let currentStep = 0;
+      
+      const animateMask = setInterval(() => {
+        currentStep++;
+        const newOpacity = (currentStep / steps) * targetOpacity;
+        setMaskOpacity(newOpacity);
+        
+        if (currentStep >= steps) {
+          clearInterval(animateMask);
+          // 动画结束，显示内容
+          setShowContent(true);
+        }
+      }, interval);
+      
+      return () => {
+        clearInterval(animateMask);
+      };
+    }
   }, [refreshKey]);
 
   const getMotionByScore = (score: number | null): MotionConfig | null => {
@@ -214,26 +266,31 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
       >
         {showEvaluationContent && (
           <>
-            <div className="absolute inset-0 bg-black/50"></div>
-            <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
-              <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
-                <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
-                <div className="text-5xl font-bold text-white mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
-                  {data?.round?.score !== null ? data?.round?.score : '--'}
+            <div 
+              className="absolute inset-0 transition-opacity"
+              style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
+            ></div>
+            {showContent && (
+              <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
+                <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
+                  <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
+                  <div className="text-5xl font-bold text-white mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
+                    {data?.round?.score !== null ? data?.round?.score : '--'}
+                  </div>
+                  <div className="text-white/80 text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
                 </div>
-                <div className="text-white/80 text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
-              </div>
 
-              {frames.length > 0 && (
-                <div className="flex items-center justify-center" style={{ width: '40%', height: '80%' }}>
-                  <img 
-                    src={frames[currentFrame]} 
-                    alt="motion" 
-                    className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-                  />
-                </div>
-              )}
-            </div>
+                {frames.length > 0 && (
+                  <div className="flex items-center justify-center" style={{ width: '40%', height: '80%' }}>
+                    <img 
+                      src={frames[currentFrame]} 
+                      alt="motion" 
+                      className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
         

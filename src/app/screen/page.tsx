@@ -37,6 +37,10 @@ export default function ScreenPage() {
   const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const backgroundSizeRef = useRef<number>(0);
+  const [maskOpacity, setMaskOpacity] = useState(0.8);
+  const [showContent, setShowContent] = useState(true);
+  const prevHasPublishedRoundRef = useRef<boolean>(false);
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchScreenData = async () => {
     try {
@@ -77,8 +81,8 @@ export default function ScreenPage() {
   useEffect(() => {
     fetchScreenData();
     fetchConfig();
-    const dataInterval = setInterval(fetchScreenData, 5000);
-    const configInterval = setInterval(fetchConfig, 5000);
+    const dataInterval = setInterval(fetchScreenData, 2500);
+    const configInterval = setInterval(fetchConfig, 2500);
     return () => {
       clearInterval(dataInterval);
       clearInterval(configInterval);
@@ -90,6 +94,53 @@ export default function ScreenPage() {
       setLoading(false);
     }
   }, [data, config]);
+
+  // 检测发布状态变化，触发动画
+  useEffect(() => {
+    const hasPublishedRound = data?.hasPublishedRound || false;
+    
+    // 从未发布变为发布状态时，触发动画
+    if (hasPublishedRound && !prevHasPublishedRoundRef.current) {
+      // 重置状态
+      setMaskOpacity(0);
+      setShowContent(false);
+      
+      // 清理之前的动画
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+      }
+      
+      // 开始mask渐变动画：从0到0.8，持续2秒
+      const duration = 2000; // 2秒
+      const targetOpacity = 0.8;
+      const steps = 60;
+      const interval = duration / steps;
+      let currentStep = 0;
+      
+      animationIntervalRef.current = setInterval(() => {
+        currentStep++;
+        const newOpacity = (currentStep / steps) * targetOpacity;
+        setMaskOpacity(newOpacity);
+        
+        if (currentStep >= steps) {
+          if (animationIntervalRef.current) {
+            clearInterval(animationIntervalRef.current);
+            animationIntervalRef.current = null;
+          }
+          // 动画结束，显示内容
+          setShowContent(true);
+        }
+      }, interval);
+    }
+    
+    prevHasPublishedRoundRef.current = hasPublishedRound;
+    
+    return () => {
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+      }
+    };
+  }, [data?.hasPublishedRound]);
 
   const getMotionByScore = (score: number | null): MotionConfig | null => {
     if (score === null || !config) return null;
@@ -168,26 +219,31 @@ export default function ScreenPage() {
         backgroundColor: '#1a1a2e'
       }}
     >
-      <div className="absolute inset-0 bg-black/50"></div>
-      <div className="flex items-center justify-center gap-16 z-10">
-        <div className="w-96 h-96 flex flex-col items-center justify-center">
-          <div className="text-white/90 text-3xl mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
-          <div className="text-8xl font-bold text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
-            {round?.score !== null ? round?.score : '--'}
+      <div 
+        className="absolute inset-0 transition-opacity"
+        style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
+      ></div>
+      {showContent && (
+        <div className="flex items-center justify-center gap-16 z-10">
+          <div className="w-96 h-96 flex flex-col items-center justify-center">
+            <div className="text-white/90 text-3xl mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
+            <div className="text-8xl font-bold text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
+              {round?.score !== null ? round?.score : '--'}
+            </div>
+            <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
           </div>
-          <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
-        </div>
 
-        {frames.length > 0 && (
-          <div className="w-96 h-96 flex items-center justify-center">
-            <img 
-              src={frames[currentFrame]} 
-              alt="motion" 
-              className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-            />
-          </div>
-        )}
-      </div>
+          {frames.length > 0 && (
+            <div className="w-96 h-96 flex items-center justify-center">
+              <img 
+                src={frames[currentFrame]} 
+                alt="motion" 
+                className="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
