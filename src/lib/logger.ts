@@ -97,7 +97,7 @@ export function logInfo(message: string): void {
   if (currentLogLevel > LOG_LEVELS.info) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `[${timestamp}] [INFO] ${message}`;
+  const logLine = `INFO ${timestamp} ${message}`;
   
   console.log(logLine);
   writeToFile(logLine);
@@ -108,7 +108,7 @@ export function logError(message: string): void {
   if (currentLogLevel > LOG_LEVELS.error) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `[${timestamp}] [ERROR] ${message}`;
+  const logLine = `ERROR ${timestamp} ${message}`;
   
   console.error(logLine);
   writeToFile(logLine);
@@ -119,7 +119,7 @@ export function logWarn(message: string): void {
   if (currentLogLevel > LOG_LEVELS.warn) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `[${timestamp}] [WARN] ${message}`;
+  const logLine = `WARN ${timestamp} ${message}`;
   
   console.warn(logLine);
   writeToFile(logLine);
@@ -134,7 +134,7 @@ export function logDebug(message: string): void {
   if (currentLogLevel > LOG_LEVELS.debug) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `[${timestamp}] [DEBUG] ${message}`;
+  const logLine = `DEBUG ${timestamp} ${message}`;
   
   console.log(logLine);
   writeToFile(logLine);
