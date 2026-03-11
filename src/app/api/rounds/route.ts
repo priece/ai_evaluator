@@ -63,6 +63,9 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
+        // 创建新轮次时，清除上一次发布的评估
+        await clearLastPublishedRound();
+        logInfo('Cleared last published round on new round creation');
         const createResult = await createRound(sessionId, roundNumber);
         return NextResponse.json({ success: true, round: createResult.round, session: createResult.session });
         

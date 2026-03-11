@@ -190,6 +190,8 @@ export default function BusinessPanel({
         if (data.session) {
           onSessionChange(data.session);
         }
+        // 创建新轮次后刷新大屏预览（清除分数展示）
+        onPublish?.();
       }
     } catch (error) {
       console.error('Failed to create round:', error);

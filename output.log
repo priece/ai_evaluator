@@ -1,0 +1,54 @@
+ ⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+Server started: http://localhost:3000
+[DB] process.cwd(): D:\project_nodejs\ai_evaluator
+[DB] DB_JSON_FILE: D:\project_nodejs\ai_evaluator\data\database.json
+[DB] File exists: true
+[DB] Loading from file: D:\project_nodejs\ai_evaluator\data\database.json
+[DB] File exists check: true
+[DB] File content length: 23448
+[DB] Parsed data keys: [
+  'users',
+  'sessions',
+  'rounds',
+  'regularEvaluations',
+  'expertEvaluations',
+  'cameraConfigs',
+  'lastPublishedRoundId'
+]
+[DB] lastPublishedRoundId from file: 7ca8c779-2bf7-4cc9-8765-47397b63d79f
+[DB] Loaded lastPublishedRoundId: 7ca8c779-2bf7-4cc9-8765-47397b63d79f
+[2026-03-11 14:52:16.382] [INFO] [API] Fetching device list
+[2026-03-11 14:52:16.982] [INFO] === ffmpeg output ===
+[2026-03-11 14:52:16.983] [INFO] Device: [dshow @ 000001318a07a1c0] "Integrated Webcam" (video)
+[2026-03-11 14:52:16.983] [INFO] Device: [dshow @ 000001318a07a1c0] "OBS Virtual Camera" (video)
+[2026-03-11 14:52:16.983] [INFO] Device: [dshow @ 000001318a07a1c0] "麦克风阵列 (Realtek(R) Audio)" (audio)
+[2026-03-11 14:52:16.984] [INFO] Device: [dshow @ 000001318a07a1c0] "立体声混音 (Realtek(R) Audio)" (audio)
+[2026-03-11 14:52:16.984] [INFO] === end ===
+[2026-03-11 14:52:16.985] [INFO] Found camera: Integrated Webcam
+[2026-03-11 14:52:16.985] [INFO] Found camera: OBS Virtual Camera
+[2026-03-11 14:52:16.988] [INFO] Found audio: 麦克风阵列 (Realtek(R) Audio)
+[2026-03-11 14:52:16.988] [INFO] Found audio: 立体声混音 (Realtek(R) Audio)
+[2026-03-11 14:52:16.989] [INFO] Cameras found: 2
+[2026-03-11 14:52:16.989] [INFO] Audio devices found: 2
+[2026-03-11 14:52:45.796] [INFO] Starting snapshot capture: sessionName=999, roundNumber=4
+[2026-03-11 14:52:45.798] [INFO] Created snapshot directory: D:\project_nodejs\ai_evaluator\snapshot\s999_r4_20260311
+[2026-03-11 14:52:45.799] [INFO] Snapshot capture started, directory: D:\project_nodejs\ai_evaluator\snapshot\s999_r4_20260311
+[2026-03-11 14:52:45.799] [INFO] Snapshot start result: Snapshot capture started
+[2026-03-11 14:52:46.301] [INFO] Capturing snapshot: 20260311_145246_301.png
+[2026-03-11 14:52:46.803] [INFO] Capturing snapshot: 20260311_145246_803.png
+[2026-03-11 14:52:47.244] [INFO] Stopping snapshot capture
+[2026-03-11 14:52:47.245] [INFO] Snapshot capture stopped
+[2026-03-11 14:52:47.245] [INFO] Snapshot stop result: Snapshot capture stopped
+[2026-03-11 14:53:25.801] [INFO] Starting snapshot capture: sessionName=999, roundNumber=5
+[2026-03-11 14:53:25.802] [INFO] Created snapshot directory: D:\project_nodejs\ai_evaluator\snapshot\s999_r5_20260311
+[2026-03-11 14:53:25.803] [INFO] Snapshot capture started, directory: D:\project_nodejs\ai_evaluator\snapshot\s999_r5_20260311
+[2026-03-11 14:53:25.803] [INFO] Snapshot start result: Snapshot capture started
+[2026-03-11 14:53:26.318] [INFO] Capturing snapshot: 20260311_145326_318.png
+[2026-03-11 14:53:26.497] [INFO] Stopping snapshot capture
+[2026-03-11 14:53:26.497] [INFO] Snapshot capture stopped
+[2026-03-11 14:53:26.497] [INFO] Snapshot stop result: Snapshot capture stopped
+Received SIGINT signal, preparing to exit...
+Failed to stop ffmpeg process: Error: Cannot find module './src/lib/cameraManager'
+Require stack:
+- D:\project_nodejs\ai_evaluator\server.js
+Process exiting, exit code: 0
