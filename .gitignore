@@ -50,4 +50,5 @@ next-env.d.ts
 # production build
 ai-evaluator-production/
 *.zip
+*.log
 .vscode/

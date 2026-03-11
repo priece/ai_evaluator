@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import ScreenPreview from './ScreenPreview';
+import ScreenPreview, { ScreenPreviewRef } from './ScreenPreview';
 
 let videojs: any;
 if (typeof window !== 'undefined') {
@@ -42,6 +42,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const audioPollingRef = useRef<NodeJS.Timeout | null>(null);
   const lastAudioMtimeRef = useRef<number>(0);
+  const screenPreviewRef = useRef<ScreenPreviewRef>(null);
 
   const startPolling = () => {
     if (pollingRef.current) {
@@ -401,8 +402,30 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
             </button>
           </div>
 
-          <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '260px' }}>
-            <ScreenPreview refreshKey={screenRefreshKey} />
+          <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '225px' }}>
+            <ScreenPreview ref={screenPreviewRef} refreshKey={screenRefreshKey} />
+          </div>
+          
+          {/* 大屏预览操作按钮 */}
+          <div className="mt-2 flex gap-2 justify-center">
+            <button
+              onClick={() => screenPreviewRef.current?.clearEvaluation()}
+              className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors whitespace-nowrap"
+            >
+              清除评估
+            </button>
+            <button
+              onClick={() => screenPreviewRef.current?.openScreen()}
+              className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors whitespace-nowrap"
+            >
+              跳转大屏
+            </button>
+            <button
+              onClick={() => screenPreviewRef.current?.uploadBackground()}
+              className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap"
+            >
+              上传背景图
+            </button>
           </div>
         </div>
       </div>

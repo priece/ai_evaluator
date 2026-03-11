@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 
 interface MotionConfig {
   id: string;
@@ -31,7 +31,13 @@ interface ScreenPreviewProps {
   refreshKey?: number;
 }
 
-export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
+export interface ScreenPreviewRef {
+  clearEvaluation: () => Promise<void>;
+  openScreen: () => void;
+  uploadBackground: () => void;
+}
+
+const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refreshKey }, ref) => {
   const [data, setData] = useState<ScreenData | null>(null);
   const [config, setConfig] = useState<ScreenConfig | null>(null);
   const [currentFrame, setCurrentFrame] = useState(0);
@@ -182,6 +188,13 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
     }
   };
 
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    clearEvaluation: handleClearEvaluation,
+    openScreen: handleOpenScreen,
+    uploadBackground: handleUploadClick
+  }));
+
   // 是否显示评估内容（评分、动画、mask）
   const showEvaluationContent = !isCleared && data?.hasPublishedRound;
 
@@ -224,29 +237,7 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
           </>
         )}
         
-        {/* 清除后或未发布时不显示任何内容，只显示背景图 */}
-      </div>
-
-      {/* 下方按钮区域 */}
-      <div className="flex gap-2 justify-center">
-        <button
-          onClick={handleClearEvaluation}
-          className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors whitespace-nowrap"
-        >
-          清除评估
-        </button>
-        <button
-          onClick={handleOpenScreen}
-          className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors whitespace-nowrap"
-        >
-          跳转大屏
-        </button>
-        <button
-          onClick={handleUploadClick}
-          className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap"
-        >
-          上传背景图
-        </button>
+      {/* 清除后或未发布时不显示任何内容，只显示背景图 */}
       </div>
 
       {/* 上传背景图弹窗 */}
@@ -282,4 +273,8 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
       )}
     </div>
   );
-}
+});
+
+ScreenPreview.displayName = 'ScreenPreview';
+
+export default ScreenPreview;
