@@ -20,6 +20,10 @@ interface ScreenData {
     round_number: number;
     score: number | null;
     status: number;
+    audience_attention?: number | null;
+    atmosphere?: number | null;
+    occupancy_rate?: number | null;
+    final_score?: number | null;
   };
   session?: {
     session_id: string;
@@ -322,17 +326,10 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
               style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
             ></div>
             {showScoreContent && (
-              <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
-                <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
-                  <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
-                  <div className="text-5xl font-bold text-white mb-1 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
-                    {data?.round?.score !== null ? data?.round?.score : '--'}
-                  </div>
-                  <div className="text-white/80 text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
-                </div>
-
+              <div className="flex items-center justify-center z-10" style={{ gap: '8%', transform: 'scale(0.45)', transformOrigin: 'center' }}>
+                {/* 左侧：动图 */}
                 {frames.length > 0 && (
-                  <div className="flex items-center justify-center" style={{ width: '40%', height: '80%' }}>
+                  <div className="flex items-center justify-center" style={{ width: '35%', height: '80%' }}>
                     <img 
                       src={frames[currentFrame]} 
                       alt="motion" 
@@ -340,6 +337,47 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                     />
                   </div>
                 )}
+
+                {/* 右侧：AI评估详情 */}
+                <div className="flex flex-col items-start justify-center text-white" style={{ width: '55%' }}>
+                  <div className="text-white text-xl font-bold mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>AI评估:</div>
+                  
+                  {/* 子项列表 */}
+                  <div className="flex flex-col gap-1 mb-3">
+                    {/* 观众注意力 */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 观众注意力：</span>
+                      <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        {data?.round?.audience_attention !== null && data?.round?.audience_attention !== undefined ? data.round.audience_attention.toFixed(1) : '--'}
+                      </span>
+                    </div>
+                    
+                    {/* 现场氛围（音波分析） */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（音波分析）：</span>
+                      <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        {data?.round?.atmosphere !== null && data?.round?.atmosphere !== undefined ? data.round.atmosphere.toFixed(1) : '--'}
+                      </span>
+                    </div>
+                    
+                    {/* 上座率 */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 上座率：</span>
+                      <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        {data?.round?.occupancy_rate !== null && data?.round?.occupancy_rate !== undefined ? `${data.round.occupancy_rate.toFixed(1)}%` : '--'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* 综合得分 - 较大字体 */}
+                  <div className="flex items-center gap-1">
+                    <span className="text-white/90 text-base font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">综合得分：</span>
+                    <span className="text-white text-xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
+                      {data?.round?.final_score !== null && data?.round?.final_score !== undefined ? data.round.final_score.toFixed(1) : '--'}
+                    </span>
+                    <span className="text-white/80 text-base drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</span>
+                  </div>
+                </div>
               </div>
             )}
           </>

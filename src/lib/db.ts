@@ -30,6 +30,11 @@ export interface Round {
   round_end_time: string | null;
   score: number | null;
   submit: number;
+  // AI评估详情
+  audience_attention: number | null;  // 观众注意力
+  atmosphere: number | null;          // 现场氛围（音波分析）
+  occupancy_rate: number | null;      // 上座率
+  final_score: number | null;         // 综合得分
 }
 
 export interface RegularEvaluation {
@@ -210,7 +215,11 @@ export const createRound = async (sessionId: string, roundNumber: number): Promi
     evaluation_end_time: null,
     round_end_time: null,
     score: null,
-    submit: 0
+    submit: 0,
+    audience_attention: null,
+    atmosphere: null,
+    occupancy_rate: null,
+    final_score: null
   };
   rounds.push(round);
   
@@ -286,6 +295,13 @@ export const startEvaluation = async (roundId: string): Promise<void> => {
   }
 };
 
+// 生成随机浮动值
+function generateFloatValue(base: number, fluctuationPercent: number): number {
+  const fluctuation = base * (fluctuationPercent / 100);
+  const randomOffset = (Math.random() * 2 - 1) * fluctuation; // -fluctuation 到 +fluctuation
+  return Math.round((base + randomOffset) * 10) / 10; // 保留1位小数
+}
+
 export const endEvaluation = async (roundId: string, score: number): Promise<void> => {
   ensureDb();
   const round = rounds.find(r => r.id === roundId);
@@ -293,6 +309,17 @@ export const endEvaluation = async (roundId: string, score: number): Promise<voi
     round.status = 4;
     round.evaluation_end_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
     round.score = score;
+    
+    // 生成AI评估详情数据
+    // 观众注意力：评估值上下浮动3%
+    round.audience_attention = generateFloatValue(score, 3);
+    // 现场氛围（音波分析）：评估值上下浮动3%
+    round.atmosphere = generateFloatValue(score, 3);
+    // 上座率：98%，上下浮动1%
+    round.occupancy_rate = generateFloatValue(98, 1);
+    // 综合得分：评估值末尾加浮点数（在score基础上加一个小数位随机值）
+    round.final_score = generateFloatValue(score, 0.5); // 小幅浮动使数值带小数
+    
     saveToFile();
   }
 };

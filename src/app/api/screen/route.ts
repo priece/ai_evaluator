@@ -30,7 +30,12 @@ export async function GET() {
         performance_end_time: round.performance_end_time,
         evaluation_start_time: round.evaluation_start_time,
         evaluation_end_time: round.evaluation_end_time,
-        round_end_time: round.round_end_time
+        round_end_time: round.round_end_time,
+        // AI评估详情
+        audience_attention: round.audience_attention,
+        atmosphere: round.atmosphere,
+        occupancy_rate: round.occupancy_rate,
+        final_score: round.final_score
       },
       session: session ? {
         session_id: session.session_id,

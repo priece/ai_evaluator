@@ -22,6 +22,10 @@ interface ScreenData {
     score: number | null;
     status: number;
     submit: number;
+    audience_attention?: number | null;
+    atmosphere?: number | null;
+    occupancy_rate?: number | null;
+    final_score?: number | null;
   };
   session?: {
     session_id: string;
@@ -274,17 +278,10 @@ export default function ScreenPage() {
         className="absolute inset-0 transition-opacity"
         style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
       ></div>
-      {/* 状态2和状态3：显示评分和动图 */}
+      {/* 状态2和状态3：显示动图（左）和AI评估详情（右） */}
       {(screenState === ScreenState.EVALUATION_PLAYING || screenState === ScreenState.MOTION_ENDED) && (
         <div className="flex items-center justify-center gap-16 z-10">
-          <div className="w-96 h-96 flex flex-col items-center justify-center">
-            <div className="text-white/90 text-3xl mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
-            <div className="text-8xl font-bold text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
-              {round?.score !== null ? round?.score : '--'}
-            </div>
-            <div className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</div>
-          </div>
-
+          {/* 左侧：动图 */}
           {frames.length > 0 && (
             <div className="w-96 h-96 flex items-center justify-center">
               <img 
@@ -294,6 +291,47 @@ export default function ScreenPage() {
               />
             </div>
           )}
+
+          {/* 右侧：AI评估详情 */}
+          <div className="flex flex-col items-start justify-center text-white">
+            <div className="text-white text-4xl font-bold mb-6 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>AI评估:</div>
+            
+            {/* 子项列表 */}
+            <div className="flex flex-col gap-3 mb-6">
+              {/* 观众注意力 */}
+              <div className="flex items-center gap-2">
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 观众注意力：</span>
+                <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  {round?.audience_attention !== null && round?.audience_attention !== undefined ? round.audience_attention.toFixed(1) : '--'}
+                </span>
+              </div>
+              
+              {/* 现场氛围（音波分析） */}
+              <div className="flex items-center gap-2">
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（音波分析）：</span>
+                <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  {round?.atmosphere !== null && round?.atmosphere !== undefined ? round.atmosphere.toFixed(1) : '--'}
+                </span>
+              </div>
+              
+              {/* 上座率 */}
+              <div className="flex items-center gap-2">
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 上座率：</span>
+                <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  {round?.occupancy_rate !== null && round?.occupancy_rate !== undefined ? `${round.occupancy_rate.toFixed(1)}%` : '--'}
+                </span>
+              </div>
+            </div>
+            
+            {/* 综合得分 - 较大字体 */}
+            <div className="flex items-center gap-2">
+              <span className="text-white/90 text-2xl font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">综合得分：</span>
+              <span className="text-white text-3xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
+                {round?.final_score !== null && round?.final_score !== undefined ? round.final_score.toFixed(1) : '--'}
+              </span>
+              <span className="text-white/80 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">分</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
