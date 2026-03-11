@@ -57,10 +57,11 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
         if (data.logs.length > 0) {
           setLogs(prev => [...prev, ...data.logs]);
           
+          // 解析新格式: [级别] __yyyyMMddTHHmmss.SSS__  消息详细
           const lastLog = data.logs[data.logs.length - 1];
-          const match = lastLog.match(/\[([^\]]+)\]/);
-          if (match) {
-            lastLogTimeRef.current = match[1];
+          const timestampMatch = lastLog.match(/__(\d{8}T\d{6}\.\d{3})__/);
+          if (timestampMatch) {
+            lastLogTimeRef.current = timestampMatch[1];
           }
         }
       }
@@ -88,44 +89,80 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
   }, [logs]);
 
   const renderLog = (log: string) => {
-    // 匹配格式: [2026-03-10 19:44:00.123] [INFO] message
-    // 使用非贪婪匹配，只匹配第一个时间戳和第一个日志级别
-    const timestampMatch = log.match(/^\s*(\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}\])/);
+    // 新格式: [级别] __yyyyMMddTHHmmss.SSS__  消息详细
+    // 例如: [CAPTURE] __20260311T142519.588__  消息内容
     
-    if (!timestampMatch) {
+    // 检查是否为新格式（以[级别]开头）
+    const levelMatch = log.match(/^\s*(\[[^\]]+\])/);
+    if (!levelMatch) {
       return <span className="text-gray-400">{log}</span>;
     }
     
-    const timestamp = timestampMatch[1];
-    const afterTimestamp = log.slice(timestampMatch[0].length);
+    const level = levelMatch[1];
+    const afterLevel = log.slice(levelMatch[0].length).trim();
     
-    // 在时间戳后查找日志级别
-    const levelMatch = afterTimestamp.match(/^\s*(\[(INFO|ERROR|WARN|DEBUG)\])/);
-    
-    if (!levelMatch) {
+    // 检查是否包含 __时间__ 格式
+    const timeMatch = afterLevel.match(/^__(.+?)__/);
+    if (timeMatch) {
+      // 新格式
+      const timestamp = timeMatch[1];
+      const message = afterLevel.slice(timeMatch[0].length).trim();
+      
+      let levelColor = 'text-gray-400';
+      if (level === '[CAPTURE]' || level === '[INFO]') levelColor = 'text-green-400';
+      else if (level === '[ERROR]') levelColor = 'text-red-400';
+      else if (level === '[WARN]') levelColor = 'text-yellow-400';
+      else if (level === '[DEBUG]') levelColor = 'text-blue-400';
+      
       return (
         <>
-          <span className="text-cyan-500">{timestamp}</span>
-          <span className="text-gray-400">{afterTimestamp}</span>
+          <span className={levelColor}>{level}</span>
+          <span className="text-gray-500"> </span>
+          <span className="text-cyan-500">__{timestamp}__</span>
+          <span className="text-gray-500">  </span>
+          <span className="text-gray-400">{message}</span>
         </>
       );
     }
     
-    const level = levelMatch[1];
-    const rest = afterTimestamp.slice(levelMatch[0].length);
+    // 兼容旧格式: [2026-03-10 19:44:00.123] [INFO] message
+    // 检查第一个中括号是否为时间戳格式
+    const isOldTimestamp = level.match(/^\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}\]$/);
+    if (isOldTimestamp) {
+      // 旧格式，第一个是时间戳，查找后面的级别
+      const nextLevelMatch = afterLevel.match(/^\s*(\[(INFO|ERROR|WARN|DEBUG)\])/);
+      if (nextLevelMatch) {
+        const nextLevel = nextLevelMatch[1];
+        const rest = afterLevel.slice(nextLevelMatch[0].length);
+        
+        let levelColor = 'text-gray-400';
+        if (nextLevel === '[INFO]') levelColor = 'text-green-400';
+        else if (nextLevel === '[ERROR]') levelColor = 'text-red-400';
+        else if (nextLevel === '[WARN]') levelColor = 'text-yellow-400';
+        else if (nextLevel === '[DEBUG]') levelColor = 'text-blue-400';
+        
+        return (
+          <>
+            <span className="text-cyan-500">{level}</span>
+            <span className="text-gray-500"> </span>
+            <span className={levelColor}>{nextLevel}</span>
+            <span className="text-gray-400">{rest}</span>
+          </>
+        );
+      }
+      
+      return (
+        <>
+          <span className="text-cyan-500">{level}</span>
+          <span className="text-gray-400">{afterLevel}</span>
+        </>
+      );
+    }
     
-    let levelColor = 'text-gray-400';
-    if (level === '[INFO]') levelColor = 'text-green-400';
-    else if (level === '[ERROR]') levelColor = 'text-red-400';
-    else if (level === '[WARN]') levelColor = 'text-yellow-400';
-    else if (level === '[DEBUG]') levelColor = 'text-blue-400';
-    
+    // 其他情况，直接显示
     return (
       <>
-        <span className="text-cyan-500">{timestamp}</span>
-        <span className="text-gray-500"> </span>
-        <span className={levelColor}>{level}</span>
-        <span className="text-gray-400">{rest}</span>
+        <span className="text-gray-400">{log}</span>
       </>
     );
   };

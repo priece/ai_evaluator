@@ -42,6 +42,19 @@ function formatTimestamp(): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 
+// 内存日志专用的时间戳格式: yyyyMMddTHHmmss.SSS (例如: 20260311T142519.588)
+function formatMemoryTimestamp(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+  return `${year}${month}${day}T${hours}${minutes}${seconds}.${milliseconds}`;
+}
+
 let currentLogFile: string = '';
 let currentHour: string = '';
 
@@ -80,8 +93,10 @@ function writeToFile(logLine: string): void {
 }
 
 function addToMemory(level: string, message: string): void {
+  // 内存日志中使用新的时间戳格式
+  const memoryTimestamp = formatMemoryTimestamp();
   const entry: LogEntry = {
-    timestamp: formatTimestamp(),
+    timestamp: memoryTimestamp,
     level,
     message
   };
