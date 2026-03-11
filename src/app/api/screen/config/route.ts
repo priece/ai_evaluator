@@ -43,6 +43,14 @@ export async function GET() {
       .replace('./public/', '/')
       .replace('\\', '/');
     
+    // 获取背景图文件大小
+    let backgroundSize = 0;
+    const backgroundPath = path.join(process.cwd(), 'public', background);
+    if (fs.existsSync(backgroundPath)) {
+      const stats = fs.statSync(backgroundPath);
+      backgroundSize = stats.size;
+    }
+    
     const motions: MotionConfig[] = config.screen.motions.map((motion) => {
       const imagePath = motion.image.replace('./public/', '');
       const fullPath = path.join(process.cwd(), 'public', imagePath);
@@ -73,6 +81,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       background,
+      backgroundSize,
       motions
     });
   } catch (error) {

@@ -186,13 +186,13 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
   const showEvaluationContent = !isCleared && data?.hasPublishedRound;
 
   return (
-    <div className="flex gap-3 items-start">
-      {/* 左侧预览窗口 */}
+    <div className="flex flex-col gap-2">
+      {/* 预览窗口 */}
       <div 
         className="flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-lg border border-gray-700"
         style={{
           width: '400px',
-          height: '260px',
+          height: '225px',
           backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -227,23 +227,23 @@ export default function ScreenPreview({ refreshKey }: ScreenPreviewProps) {
         {/* 清除后或未发布时不显示任何内容，只显示背景图 */}
       </div>
 
-      {/* 右侧按钮区域 */}
-      <div className="flex flex-col gap-2">
+      {/* 下方按钮区域 */}
+      <div className="flex gap-2 justify-center">
         <button
           onClick={handleClearEvaluation}
-          className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap"
+          className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors whitespace-nowrap"
         >
           清除评估
         </button>
         <button
           onClick={handleOpenScreen}
-          className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
+          className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors whitespace-nowrap"
         >
           跳转大屏
         </button>
         <button
           onClick={handleUploadClick}
-          className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+          className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap"
         >
           上传背景图
         </button>

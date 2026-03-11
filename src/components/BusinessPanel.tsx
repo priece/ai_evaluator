@@ -394,8 +394,8 @@ export default function BusinessPanel({
                       {evaluatingRoundId === round.id ? '评估中...' : '重新评估'}
                     </button>
                   )}
-                  {/* 高亮的轮次始终显示发布按钮 */}
-                  {highlightRound?.id === round.id && (
+                  {/* 高亮的轮次在已评估或已发布状态时显示发布按钮 */}
+                  {highlightRound?.id === round.id && (round.status === RoundStatus.EVALUATED || round.status === RoundStatus.ROUND_ENDED) && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'publish'); onPublish?.(); }}
                       disabled={!isAdmin}

@@ -10,6 +10,7 @@ interface MotionConfig {
 
 interface ScreenConfig {
   background: string;
+  backgroundSize: number;
   motions: MotionConfig[];
 }
 
@@ -35,6 +36,7 @@ export default function ScreenPage() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
   const animationRef = useRef<NodeJS.Timeout | null>(null);
+  const backgroundSizeRef = useRef<number>(0);
 
   const fetchScreenData = async () => {
     try {
@@ -53,11 +55,19 @@ export default function ScreenPage() {
       const res = await fetch('/api/screen/config');
       const result = await res.json();
       if (result.success) {
+        const newBackgroundSize = result.backgroundSize || 0;
+        
+        // 只有当背景图大小变化时才更新时间戳，触发刷新
+        if (newBackgroundSize !== backgroundSizeRef.current) {
+          backgroundSizeRef.current = newBackgroundSize;
+          setBackgroundTimestamp(Date.now());
+        }
+        
         setConfig({
           background: result.background,
+          backgroundSize: newBackgroundSize,
           motions: result.motions
         });
-        setBackgroundTimestamp(Date.now());
       }
     } catch (error) {
       console.error('Failed to get config:', error);

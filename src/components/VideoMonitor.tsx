@@ -34,6 +34,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
   const [rotation, setRotation] = useState<number>(0);
   const [showWaveform, setShowWaveform] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const playerRef = useRef<any>(null);
   const videoRef = useRef<HTMLDivElement>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -342,18 +343,13 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
           <button
             onClick={isCapturing ? stopCapture : startCapture}
             disabled={!isAdmin || (!isCapturing && !selectedCamera)}
-            className="p-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            title={isCapturing ? '停止采集' : '开始采集'}
+            className={`px-4 py-1.5 text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
+              isCapturing 
+                ? 'bg-red-600 text-white hover:bg-red-700' 
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
           >
-            {isCapturing ? (
-              <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            )}
+            {isCapturing ? '停止采集' : '开始采集'}
           </button>
           <button
             onClick={() => setShowSettings(true)}
@@ -376,8 +372,33 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
             </div>
           </div>
           
-          <div className="mt-2 p-2 bg-[#252525] rounded-lg border border-gray-700">
-            <div ref={waveformRef} className="w-full" style={{ minHeight: '30px' }} />
+          <div className="mt-2 p-2 bg-[#252525] rounded-lg border border-gray-700 flex items-center gap-2">
+            <div ref={waveformRef} className="flex-1" style={{ minHeight: '30px' }} />
+            <button
+              onClick={() => {
+                const newMuted = !isMuted;
+                setIsMuted(newMuted);
+                if (playerRef.current) {
+                  playerRef.current.muted(newMuted);
+                }
+                if (wavesurferRef.current) {
+                  wavesurferRef.current.setMute(newMuted);
+                }
+              }}
+              className={`p-2 rounded-lg transition ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'}`}
+              title={isMuted ? '取消静音' : '静音'}
+            >
+              {isMuted ? (
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+              )}
+            </button>
           </div>
 
           <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '260px' }}>
