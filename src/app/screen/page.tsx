@@ -29,18 +29,31 @@ interface ScreenData {
   };
 }
 
+// 大屏状态枚举
+// 0 - 背景态：只显示背景图
+// 1 - Mask动画态：mask从透明渐变到半透明
+// 2 - 评估和动图态：显示评分和播放动图
+// 3 - 动图结束态：动图播放完毕，停在最后一帧
+enum ScreenState {
+  BACKGROUND = 0,
+  MASK_ANIMATION = 1,
+  EVALUATION_PLAYING = 2,
+  MOTION_ENDED = 3
+}
+
 export default function ScreenPage() {
   const [data, setData] = useState<ScreenData | null>(null);
   const [config, setConfig] = useState<ScreenConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [screenState, setScreenState] = useState<ScreenState>(ScreenState.BACKGROUND);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
+  const [maskOpacity, setMaskOpacity] = useState(0);
+  
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const backgroundSizeRef = useRef<number>(0);
-  const [maskOpacity, setMaskOpacity] = useState(0.8);
-  const [showContent, setShowContent] = useState(true);
   const prevHasPublishedRoundRef = useRef<boolean>(false);
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const maskAnimationRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchScreenData = async () => {
     try {
@@ -81,8 +94,8 @@ export default function ScreenPage() {
   useEffect(() => {
     fetchScreenData();
     fetchConfig();
-    const dataInterval = setInterval(fetchScreenData, 2500);
-    const configInterval = setInterval(fetchConfig, 2500);
+    const dataInterval = setInterval(fetchScreenData, 3000);
+    const configInterval = setInterval(fetchConfig, 3000);
     return () => {
       clearInterval(dataInterval);
       clearInterval(configInterval);
@@ -95,19 +108,23 @@ export default function ScreenPage() {
     }
   }, [data, config]);
 
-  // 检测发布状态变化，触发动画
+  // 检测发布状态变化，触发状态机
   useEffect(() => {
     const hasPublishedRound = data?.hasPublishedRound || false;
     
-    // 从未发布变为发布状态时，触发动画
+    // 从未发布变为发布状态时，进入Mask动画态
     if (hasPublishedRound && !prevHasPublishedRoundRef.current) {
       // 重置状态
+      setCurrentFrame(0);
       setMaskOpacity(0);
-      setShowContent(false);
+      setScreenState(ScreenState.MASK_ANIMATION);
       
       // 清理之前的动画
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
+      if (maskAnimationRef.current) {
+        clearInterval(maskAnimationRef.current);
+      }
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
       }
       
       // 开始mask渐变动画：从0到0.8，持续2秒
@@ -117,27 +134,38 @@ export default function ScreenPage() {
       const interval = duration / steps;
       let currentStep = 0;
       
-      animationIntervalRef.current = setInterval(() => {
+      maskAnimationRef.current = setInterval(() => {
         currentStep++;
         const newOpacity = (currentStep / steps) * targetOpacity;
         setMaskOpacity(newOpacity);
         
         if (currentStep >= steps) {
-          if (animationIntervalRef.current) {
-            clearInterval(animationIntervalRef.current);
-            animationIntervalRef.current = null;
+          if (maskAnimationRef.current) {
+            clearInterval(maskAnimationRef.current);
+            maskAnimationRef.current = null;
           }
-          // 动画结束，显示内容
-          setShowContent(true);
+          // Mask动画结束，进入评估和动图态
+          setScreenState(ScreenState.EVALUATION_PLAYING);
         }
       }, interval);
+    }
+    
+    // 如果发布状态变为false，重置到背景态
+    if (!hasPublishedRound && prevHasPublishedRoundRef.current) {
+      setScreenState(ScreenState.BACKGROUND);
+      setMaskOpacity(0);
+      setCurrentFrame(0);
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+        animationRef.current = null;
+      }
     }
     
     prevHasPublishedRoundRef.current = hasPublishedRound;
     
     return () => {
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
+      if (maskAnimationRef.current) {
+        clearInterval(maskAnimationRef.current);
       }
     };
   }, [data?.hasPublishedRound]);
@@ -158,11 +186,32 @@ export default function ScreenPage() {
   const currentMotion = getMotionByScore(data?.round?.score || null);
   const frames = currentMotion?.frames || [];
 
+  // 动图动画 - 只在评估和动图态播放
   useEffect(() => {
-    if (frames.length === 0) return;
+    // 清理之前的动画
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+      animationRef.current = null;
+    }
+
+    // 只在评估和动图态播放
+    if (frames.length === 0 || screenState !== ScreenState.EVALUATION_PLAYING) return;
 
     const animate = () => {
-      setCurrentFrame(prev => (prev + 1) % frames.length);
+      setCurrentFrame(prev => {
+        const nextFrame = prev + 1;
+        // 如果下一帧是最后一帧，播放完后进入结束态
+        if (nextFrame >= frames.length) {
+          // 已经播放完所有帧，进入结束态
+          if (animationRef.current) {
+            clearInterval(animationRef.current);
+            animationRef.current = null;
+          }
+          setScreenState(ScreenState.MOTION_ENDED);
+          return prev; // 停在最后一帧
+        }
+        return nextFrame;
+      });
     };
 
     animationRef.current = setInterval(animate, 100);
@@ -172,7 +221,7 @@ export default function ScreenPage() {
         clearInterval(animationRef.current);
       }
     };
-  }, [frames.length]);
+  }, [frames.length, screenState]);
 
   if (loading) {
     return (
@@ -191,7 +240,8 @@ export default function ScreenPage() {
     );
   }
 
-  if (!data || !data.hasPublishedRound) {
+  // 状态0：背景态
+  if (!data || !data.hasPublishedRound || screenState === ScreenState.BACKGROUND) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center relative"
@@ -202,13 +252,14 @@ export default function ScreenPage() {
           backgroundColor: '#1a1a2e'
         }}
       >
-        {/* 未发布时只显示背景图，不显示任何内容 */}
+        {/* 背景态：只显示背景图，不显示任何内容 */}
       </div>
     );
   }
 
   const { round } = data;
 
+  // 状态1：Mask动画态、状态2：评估和动图态、状态3：动图结束态
   return (
     <div 
       className="min-h-screen flex items-center justify-center relative"
@@ -223,7 +274,8 @@ export default function ScreenPage() {
         className="absolute inset-0 transition-opacity"
         style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
       ></div>
-      {showContent && (
+      {/* 状态2和状态3：显示评分和动图 */}
+      {(screenState === ScreenState.EVALUATION_PLAYING || screenState === ScreenState.MOTION_ENDED) && (
         <div className="flex items-center justify-center gap-16 z-10">
           <div className="w-96 h-96 flex flex-col items-center justify-center">
             <div className="text-white/90 text-3xl mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>

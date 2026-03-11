@@ -37,18 +37,32 @@ export interface ScreenPreviewRef {
   uploadBackground: () => void;
 }
 
+// 大屏状态枚举
+// 0 - 背景态：只显示背景图
+// 1 - Mask动画态：mask从透明渐变到半透明
+// 2 - 评估和动图态：显示评分和播放动图
+// 3 - 动图结束态：动图播放完毕，停在最后一帧
+enum ScreenState {
+  BACKGROUND = 0,
+  MASK_ANIMATION = 1,
+  EVALUATION_PLAYING = 2,
+  MOTION_ENDED = 3
+}
+
 const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refreshKey }, ref) => {
   const [data, setData] = useState<ScreenData | null>(null);
   const [config, setConfig] = useState<ScreenConfig | null>(null);
+  const [screenState, setScreenState] = useState<ScreenState>(ScreenState.BACKGROUND);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isCleared, setIsCleared] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [backgroundTimestamp, setBackgroundTimestamp] = useState(Date.now());
+  const [maskOpacity, setMaskOpacity] = useState(0.8);
+  
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [maskOpacity, setMaskOpacity] = useState(0.8); // 初始mask透明度
-  const [showContent, setShowContent] = useState(false); // 是否显示分数内容
+  const maskAnimationRef = useRef<NodeJS.Timeout | null>(null);
   const prevRefreshKeyRef = useRef(refreshKey);
 
   const fetchScreenData = async (): Promise<ScreenData | null> => {
@@ -86,16 +100,16 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
     const init = async () => {
       await fetchConfig();
       const screenData = await fetchScreenData();
-      // 如果有已发布的评估，设置初始状态为显示内容
+      // 如果有已发布的评估，直接进入动图结束态（显示静态内容）
       if (screenData?.hasPublishedRound) {
         setMaskOpacity(0.8);
-        setShowContent(true);
+        setScreenState(ScreenState.MOTION_ENDED);
       }
     };
     init();
   }, []);
 
-  // 处理发布动画效果
+  // 处理发布动画效果 - 使用状态机
   useEffect(() => {
     // 检测 refreshKey 是否变化（表示新的发布）
     if (refreshKey !== prevRefreshKeyRef.current) {
@@ -104,11 +118,19 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
       // 重置状态
       setIsCleared(false);
       setCurrentFrame(0);
-      setMaskOpacity(0); // 从透明开始
-      setShowContent(false); // 先不显示内容
+      setMaskOpacity(0);
+      setScreenState(ScreenState.MASK_ANIMATION);
       
       fetchScreenData();
       fetchConfig();
+      
+      // 清理之前的动画
+      if (maskAnimationRef.current) {
+        clearInterval(maskAnimationRef.current);
+      }
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+      }
       
       // 开始mask渐变动画：从0到0.8，持续2秒
       const duration = 2000; // 2秒
@@ -117,20 +139,25 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
       const interval = duration / steps;
       let currentStep = 0;
       
-      const animateMask = setInterval(() => {
+      maskAnimationRef.current = setInterval(() => {
         currentStep++;
         const newOpacity = (currentStep / steps) * targetOpacity;
         setMaskOpacity(newOpacity);
         
         if (currentStep >= steps) {
-          clearInterval(animateMask);
-          // 动画结束，显示内容
-          setShowContent(true);
+          if (maskAnimationRef.current) {
+            clearInterval(maskAnimationRef.current);
+            maskAnimationRef.current = null;
+          }
+          // Mask动画结束，进入评估和动图态
+          setScreenState(ScreenState.EVALUATION_PLAYING);
         }
       }, interval);
       
       return () => {
-        clearInterval(animateMask);
+        if (maskAnimationRef.current) {
+          clearInterval(maskAnimationRef.current);
+        }
       };
     }
   }, [refreshKey]);
@@ -151,11 +178,32 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
   const currentMotion = getMotionByScore(data?.round?.score || null);
   const frames = currentMotion?.frames || [];
 
+  // 动图动画 - 只在评估和动图态播放
   useEffect(() => {
-    if (frames.length === 0 || isCleared) return;
+    // 清理之前的动画
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+      animationRef.current = null;
+    }
+
+    // 只在评估和动图态播放
+    if (frames.length === 0 || isCleared || screenState !== ScreenState.EVALUATION_PLAYING) return;
 
     const animate = () => {
-      setCurrentFrame(prev => (prev + 1) % frames.length);
+      setCurrentFrame(prev => {
+        const nextFrame = prev + 1;
+        // 如果下一帧超过最后一帧，播放完后进入结束态
+        if (nextFrame >= frames.length) {
+          // 已经播放完所有帧，进入结束态
+          if (animationRef.current) {
+            clearInterval(animationRef.current);
+            animationRef.current = null;
+          }
+          setScreenState(ScreenState.MOTION_ENDED);
+          return prev; // 停在最后一帧
+        }
+        return nextFrame;
+      });
     };
 
     animationRef.current = setInterval(animate, 100);
@@ -165,7 +213,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
         clearInterval(animationRef.current);
       }
     };
-  }, [frames.length, isCleared]);
+  }, [frames.length, isCleared, screenState]);
 
   const handleClearEvaluation = async () => {
     try {
@@ -181,6 +229,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
         setIsCleared(true);
         setCurrentFrame(0);
         setData(null);
+        setScreenState(ScreenState.BACKGROUND);
       } else {
         alert(result.message || '清除失败');
       }
@@ -249,6 +298,8 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
 
   // 是否显示评估内容（评分、动画、mask）
   const showEvaluationContent = !isCleared && data?.hasPublishedRound;
+  // 是否显示评分和动图内容（状态2和状态3）
+  const showScoreContent = screenState === ScreenState.EVALUATION_PLAYING || screenState === ScreenState.MOTION_ENDED;
 
   return (
     <div className="flex flex-col gap-2">
@@ -270,7 +321,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
               className="absolute inset-0 transition-opacity"
               style={{ backgroundColor: `rgba(0, 0, 0, ${maskOpacity})` }}
             ></div>
-            {showContent && (
+            {showScoreContent && (
               <div className="flex items-center justify-center z-10" style={{ gap: '10%', transform: 'scale(0.5)', transformOrigin: 'center' }}>
                 <div className="flex flex-col items-center justify-center" style={{ width: '40%', height: '80%' }}>
                   <div className="text-white/90 text-xl mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">AI 评分</div>
