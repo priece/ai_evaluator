@@ -108,7 +108,7 @@ export function logError(message: string): void {
   if (currentLogLevel > LOG_LEVELS.error) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `ERROR ${timestamp} ${message}`;
+  const logLine = `[ERROR] ${timestamp} ${message}`;
   
   console.error(logLine);
   writeToFile(logLine);
