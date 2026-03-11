@@ -17,7 +17,12 @@ export async function GET(request: Request) {
     }
     
     const logLines = logs.map(log => {
-      const levelStr = log.level === 'WARN' ? `[${log.level}]` : log.level;
+      let levelStr = log.level;
+      if (log.level === 'WARN') {
+        levelStr = `[${log.level}]`;
+      } else if (log.level === 'CAPTURE') {
+        levelStr = log.level;
+      }
       return `${levelStr} ${log.timestamp} ${log.message}`;
     });
     

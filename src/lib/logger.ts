@@ -97,11 +97,11 @@ export function logInfo(message: string): void {
   if (currentLogLevel > LOG_LEVELS.info) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `INFO ${timestamp} ${message}`;
+  const logLine = `CAPTURE ${timestamp} ${message}`;
   
   console.log(logLine);
   writeToFile(logLine);
-  addToMemory('INFO', message);
+  addToMemory('CAPTURE', message);
 }
 
 export function logError(message: string): void {
