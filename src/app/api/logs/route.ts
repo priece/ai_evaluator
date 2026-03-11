@@ -17,7 +17,8 @@ export async function GET(request: Request) {
     }
     
     const logLines = logs.map(log => {
-      return `${log.level} ${log.timestamp} ${log.message}`;
+      const levelStr = log.level === 'WARN' ? `[${log.level}]` : log.level;
+      return `${levelStr} ${log.timestamp} ${log.message}`;
     });
     
     return NextResponse.json({ 

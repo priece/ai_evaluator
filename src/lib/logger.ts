@@ -119,7 +119,7 @@ export function logWarn(message: string): void {
   if (currentLogLevel > LOG_LEVELS.warn) return;
   
   const timestamp = formatTimestamp();
-  const logLine = `WARN ${timestamp} ${message}`;
+  const logLine = `[WARN] ${timestamp} ${message}`;
   
   console.warn(logLine);
   writeToFile(logLine);
