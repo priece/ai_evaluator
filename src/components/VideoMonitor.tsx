@@ -354,7 +354,8 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-lg hover:bg-gray-700 transition"
+            disabled={!isAdmin}
+            className="p-2 rounded-lg hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             title="设置"
           >
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,19 +411,22 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
           <div className="mt-2 flex gap-2 justify-center">
             <button
               onClick={() => screenPreviewRef.current?.clearEvaluation()}
-              className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors whitespace-nowrap"
+              disabled={!isAdmin}
+              className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               清除评估
             </button>
             <button
               onClick={() => screenPreviewRef.current?.openScreen()}
-              className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors whitespace-nowrap"
+              disabled={!isAdmin}
+              className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               跳转大屏
             </button>
             <button
               onClick={() => screenPreviewRef.current?.uploadBackground()}
-              className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap"
+              disabled={!isAdmin}
+              className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               上传背景图
             </button>

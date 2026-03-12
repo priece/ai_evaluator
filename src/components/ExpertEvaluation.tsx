@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Session } from '@/types';
 import type { ExpertEvaluation as ExpertEvaluationType } from '@/types';
+import { formatTime } from '@/lib/timeUtils';
 
 // 动态导入 video.js，确保只在客户端使用
 let videojs: any;
@@ -425,7 +426,7 @@ export default function ExpertEvaluation() {
                       <td className="py-2 px-3 border-b">{evalItem.round}</td>
                       <td className="py-2 px-3 border-b font-medium text-blue-600">{evalItem.expert_score}</td>
                       <td className="py-2 px-3 border-b text-gray-500 text-sm">
-                        {new Date(evalItem.evaluated_at).toLocaleString()}
+                        {formatTime(evalItem.evaluated_at)}
                       </td>
                     </tr>
                   ))}

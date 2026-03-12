@@ -89,10 +89,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             {loading ? '登录中...' : '登录'}
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>测试账号：guest / guest</p>
-        </div>
       </div>
     </div>
   );

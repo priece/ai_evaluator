@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Session, RegularEvaluation, ExpertEvaluation } from '@/types';
+import { formatTime } from '@/lib/timeUtils';
 
 export default function EvaluationRecords() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -96,7 +97,7 @@ export default function EvaluationRecords() {
                         <td className="py-2 border-b">{evaluation.round}</td>
                         <td className="py-2 border-b">{evaluation.score}</td>
                         <td className="py-2 border-b">
-                          {new Date(evaluation.evaluated_at).toLocaleString()}
+                          {formatTime(evaluation.evaluated_at)}
                         </td>
                       </tr>
                     ))}
@@ -126,7 +127,7 @@ export default function EvaluationRecords() {
                         <td className="py-2 border-b">{evaluation.round}</td>
                         <td className="py-2 border-b">{evaluation.expert_score}</td>
                         <td className="py-2 border-b">
-                          {new Date(evaluation.evaluated_at).toLocaleString()}
+                          {formatTime(evaluation.evaluated_at)}
                         </td>
                       </tr>
                     ))}

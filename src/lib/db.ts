@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
 import { logError } from './logger';
+import { getLocalTimeString } from './timeUtils';
 
 export interface User {
   id: string;
@@ -167,7 +168,7 @@ export const createSession = async (name: string): Promise<Session> => {
   ensureDb();
   const id = uuidv4();
   const sessionId = uuidv4();
-  const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const createdAt = getLocalTimeString();
   const session: Session = { 
     id, 
     session_id: sessionId, 
@@ -202,7 +203,7 @@ export const updateSessionName = async (sessionId: string, name: string): Promis
 export const createRound = async (sessionId: string, roundNumber: number): Promise<{ round: Round; session: Session | null }> => {
   ensureDb();
   const id = uuidv4();
-  const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const createdAt = getLocalTimeString();
   const round: Round = {
     id,
     session_id: sessionId,
@@ -268,7 +269,7 @@ export const startPerformance = async (roundId: string): Promise<void> => {
   const round = rounds.find(r => r.id === roundId);
   if (round) {
     round.status = 1;
-    round.performance_start_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    round.performance_start_time = getLocalTimeString();
     saveToFile();
   }
 };
@@ -278,7 +279,7 @@ export const endPerformance = async (roundId: string): Promise<void> => {
   const round = rounds.find(r => r.id === roundId);
   if (round) {
     round.status = 2;
-    round.performance_end_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    round.performance_end_time = getLocalTimeString();
     saveToFile();
   }
 };
@@ -288,7 +289,7 @@ export const startEvaluation = async (roundId: string): Promise<void> => {
   const round = rounds.find(r => r.id === roundId);
   if (round) {
     round.status = 3;
-    round.evaluation_start_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    round.evaluation_start_time = getLocalTimeString();
     round.evaluation_end_time = null;
     round.score = null;
     saveToFile();
@@ -307,7 +308,7 @@ export const endEvaluation = async (roundId: string, score: number): Promise<voi
   const round = rounds.find(r => r.id === roundId);
   if (round) {
     round.status = 4;
-    round.evaluation_end_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    round.evaluation_end_time = getLocalTimeString();
     round.score = score;
     
     // 生成AI评估详情数据
@@ -331,7 +332,7 @@ export const endRound = async (roundId: string): Promise<{ round: Round; session
   
   if (round) {
     round.status = 5;
-    round.round_end_time = new Date().toISOString().replace('T', ' ').substring(0, 19);
+    round.round_end_time = getLocalTimeString();
     
     const session = sessions.find(s => s.session_id === round.session_id);
     if (session) {
@@ -381,7 +382,7 @@ export const createRegularEvaluation = async (
 ): Promise<RegularEvaluation> => {
   ensureDb();
   const id = uuidv4();
-  const evaluatedAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const evaluatedAt = getLocalTimeString();
   const evaluation: RegularEvaluation = { id, session_id: sessionId, round, score, evaluated_at: evaluatedAt };
   regularEvaluations.push(evaluation);
   saveToFile();
@@ -408,7 +409,7 @@ export const createExpertEvaluation = async (
 ): Promise<ExpertEvaluation> => {
   ensureDb();
   const id = uuidv4();
-  const evaluatedAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const evaluatedAt = getLocalTimeString();
   const evaluation: ExpertEvaluation = { id, session_id: sessionId, round, expert_score: expertScore, evaluated_at: evaluatedAt };
   expertEvaluations.push(evaluation);
   saveToFile();
@@ -435,7 +436,7 @@ export const getCameraConfig = async (cameraId: string): Promise<CameraConfig | 
 
 export const saveCameraConfig = async (cameraId: string, rotation: number): Promise<CameraConfig> => {
   ensureDb();
-  const updatedAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const updatedAt = getLocalTimeString();
   const existingIndex = cameraConfigs.findIndex(c => c.camera_id === cameraId);
   
   if (existingIndex >= 0) {

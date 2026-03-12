@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RoundStatus, RoundStatusLabels } from '@/types';
+import { parseTime, formatTime } from '@/lib/timeUtils';
 
 interface Session {
   id: string;
@@ -58,6 +59,39 @@ export default function BusinessPanel({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
   const [evaluatingRoundId, setEvaluatingRoundId] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins} 分 ${secs} 秒`;
+  };
+
+  const getPerformanceDuration = (round: Round): string | null => {
+    if (round.status === RoundStatus.PERFORMING && round.performance_start_time) {
+      const startTime = parseTime(round.performance_start_time);
+      const elapsed = Math.floor((currentTime - startTime) / 1000);
+      return formatDuration(Math.max(0, elapsed));
+    }
+    if ((round.status === RoundStatus.PERFORMANCE_ENDED || 
+         round.status === RoundStatus.EVALUATED || 
+         round.status === RoundStatus.ROUND_ENDED) && 
+        round.performance_start_time && round.performance_end_time) {
+      const startTime = parseTime(round.performance_start_time);
+      const endTime = parseTime(round.performance_end_time);
+      const duration = Math.floor((endTime - startTime) / 1000);
+      return formatDuration(Math.max(0, duration));
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (!evaluatingRoundId) return;
@@ -190,8 +224,12 @@ export default function BusinessPanel({
         if (data.session) {
           onSessionChange(data.session);
         }
-        // 创建新轮次后刷新大屏预览（清除分数展示）
         onPublish?.();
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('Failed to create round:', error);
@@ -292,7 +330,7 @@ export default function BusinessPanel({
                 <span className="font-medium text-gray-300">当前演出：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
               </div>
               <div>
-                <span className="font-medium text-gray-300">创建时间：</span>{selectedSession.created_at}
+                <span className="font-medium text-gray-300">创建时间：</span>{formatTime(selectedSession.created_at)}
               </div>
             </div>
           </div>
@@ -300,8 +338,8 @@ export default function BusinessPanel({
       </div>
 
       {/* 演出管理 */}
-      <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 flex-1 overflow-auto border border-gray-800">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 flex-1 flex flex-col overflow-hidden border border-gray-800">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-100">演出管理</h2>
           {selectedSession && (() => {
             const maxRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0;
@@ -324,12 +362,13 @@ export default function BusinessPanel({
           })()}
         </div>
 
-        {rounds.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            {selectedSession ? '暂无演出，请新建演出' : '请先选择场次'}
-          </div>
-        ) : (
-          <div className="space-y-3">
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto">
+          {rounds.length === 0 ? (
+            <div className="text-center text-gray-500 py-8">
+              {selectedSession ? '暂无演出，请新建演出' : '请先选择场次'}
+            </div>
+          ) : (
+            <div className="space-y-3">
             {rounds.map((round) => (
               <div 
                 key={round.id} 
@@ -354,7 +393,7 @@ export default function BusinessPanel({
 
                 {/* 操作按钮和状态 */}
                 <div className="mt-2 flex justify-between items-center">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 items-center">
                   {round.status === RoundStatus.NOT_STARTED && (
                     <button
                       onClick={(e) => { e.stopPropagation(); updateRoundStatus(round.id, 'startPerformance'); }}
@@ -406,6 +445,17 @@ export default function BusinessPanel({
                       发布
                     </button>
                   )}
+                  {/* 表演时长 */}
+                  {(() => {
+                    const duration = getPerformanceDuration(round);
+                    if (!duration) return null;
+                    const label = round.status === RoundStatus.PERFORMING ? '已表演时长' : '表演时长';
+                    return (
+                      <span className="px-3 py-1 text-xs text-gray-400">
+                        {label}：{duration}
+                      </span>
+                    );
+                  })()}
                   </div>
                   <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusBadgeClass(round.status)}`}>
                     {RoundStatusLabels[round.status as RoundStatus]}
@@ -413,8 +463,9 @@ export default function BusinessPanel({
                 </div>
               </div>
             ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 新建场次弹窗 */}

@@ -169,11 +169,11 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
   const getMotionByScore = (score: number | null): MotionConfig | null => {
     if (score === null || !config) return null;
     
-    if (score >= 0 && score <= 39) {
+    if (score >= 0 && score <= 69) {
       return config.motions.find(m => m.id === 'motion_00') || null;
-    } else if (score >= 40 && score <= 79) {
+    } else if (score >= 70 && score <= 89) {
       return config.motions.find(m => m.id === 'motion_01') || null;
-    } else if (score >= 80 && score <= 100) {
+    } else if (score >= 90 && score <= 100) {
       return config.motions.find(m => m.id === 'motion_02') || null;
     }
     return null;
@@ -314,7 +314,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
           width: '400px',
           height: '225px',
           backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
-          backgroundSize: 'cover',
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
           backgroundColor: '#1a1a2e'
         }}
