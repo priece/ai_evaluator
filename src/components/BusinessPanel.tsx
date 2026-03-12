@@ -100,7 +100,8 @@ export default function BusinessPanel({
       const key = event.key;
       if (key >= '0' && key <= '9') {
         const k = parseInt(key);
-        const randomDecimal = Math.floor(Math.random() * 10);
+        // 生成 0.0 到 9.9 的随机小数
+        const randomDecimal = Math.round(Math.random() * 99) / 10;
         const score = k * 10 + randomDecimal;
         
         try {
@@ -386,7 +387,7 @@ export default function BusinessPanel({
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     ) : round.score !== null ? (
-                      `${round.score} 分`
+                      `${round.score.toFixed(1)} 分`
                     ) : null}
                   </div>
                 </div>

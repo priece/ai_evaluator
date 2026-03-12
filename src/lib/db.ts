@@ -318,8 +318,8 @@ export const endEvaluation = async (roundId: string, score: number): Promise<voi
     round.atmosphere = generateFloatValue(score, 3);
     // 上座率：98%，上下浮动1%
     round.occupancy_rate = generateFloatValue(98, 1);
-    // 综合得分：评估值末尾加浮点数（在score基础上加一个小数位随机值）
-    round.final_score = generateFloatValue(score, 0.5); // 小幅浮动使数值带小数
+    // 综合得分：直接复制score值
+    round.final_score = score;
     
     saveToFile();
   }
