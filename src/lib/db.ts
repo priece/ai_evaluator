@@ -34,7 +34,7 @@ export interface Round {
   // AI评估详情
   audience_attention: number | null;  // 观众注意力
   atmosphere: number | null;          // 现场氛围（音波分析）
-  occupancy_rate: number | null;      // 上座率
+  occupancy_rate: number | null;      // 在座率
   final_score: number | null;         // 综合得分
 }
 

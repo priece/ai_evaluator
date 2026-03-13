@@ -346,7 +346,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                   <div className="flex flex-col gap-1 mb-3">
                     {/* 观众注意力 */}
                     <div className="flex items-center gap-1">
-                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 观众注意力：</span>
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 抬头率：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {data?.round?.audience_attention !== null && data?.round?.audience_attention !== undefined ? data.round.audience_attention.toFixed(1) : '--'}
                       </span>
@@ -354,7 +354,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                     
                     {/* 现场氛围（音波分析） */}
                     <div className="flex items-center gap-1">
-                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（音波分析）：</span>
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（掌声、笑声）：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {data?.round?.atmosphere !== null && data?.round?.atmosphere !== undefined ? data.round.atmosphere.toFixed(1) : '--'}
                       </span>
@@ -362,7 +362,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                     
                     {/* 上座率 */}
                     <div className="flex items-center gap-1">
-                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 上座率：</span>
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 在座率：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {data?.round?.occupancy_rate !== null && data?.round?.occupancy_rate !== undefined ? `${data.round.occupancy_rate.toFixed(1)}%` : '--'}
                       </span>
@@ -371,7 +371,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                   
                   {/* 综合得分 - 较大字体 */}
                   <div className="flex items-center gap-1">
-                    <span className="text-white/90 text-base font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">综合得分：</span>
+                    <span className="text-white/90 text-base font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">第 {data?.round?.round_number} 位宣讲员 综合得分：</span>
                     <span className="text-white text-xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
                       {data?.round?.final_score !== null && data?.round?.final_score !== undefined ? data.round.final_score.toFixed(1) : '--'}
                     </span>

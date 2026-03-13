@@ -300,7 +300,7 @@ export default function ScreenPage() {
             <div className="flex flex-col gap-3 mb-6">
               {/* 观众注意力 */}
               <div className="flex items-center gap-2">
-                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 观众注意力：</span>
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 抬头率：</span>
                 <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                   {round?.audience_attention !== null && round?.audience_attention !== undefined ? round.audience_attention.toFixed(1) : '--'}
                 </span>
@@ -308,7 +308,7 @@ export default function ScreenPage() {
               
               {/* 现场氛围（音波分析） */}
               <div className="flex items-center gap-2">
-                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（音波分析）：</span>
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（掌声、笑声）：</span>
                 <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                   {round?.atmosphere !== null && round?.atmosphere !== undefined ? round.atmosphere.toFixed(1) : '--'}
                 </span>
@@ -316,7 +316,7 @@ export default function ScreenPage() {
               
               {/* 上座率 */}
               <div className="flex items-center gap-2">
-                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 上座率：</span>
+                <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 在座率：</span>
                 <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                   {round?.occupancy_rate !== null && round?.occupancy_rate !== undefined ? `${round.occupancy_rate.toFixed(1)}%` : '--'}
                 </span>
@@ -325,7 +325,7 @@ export default function ScreenPage() {
             
             {/* 综合得分 - 较大字体 */}
             <div className="flex items-center gap-2">
-              <span className="text-white/90 text-2xl font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">综合得分：</span>
+              <span className="text-white/90 text-2xl font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">第 {round?.round_number} 位宣讲员 综合得分：</span>
               <span className="text-white text-3xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
                 {round?.final_score !== null && round?.final_score !== undefined ? round.final_score.toFixed(1) : '--'}
               </span>

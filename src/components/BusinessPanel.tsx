@@ -341,7 +341,7 @@ export default function BusinessPanel({
       {/* 演出管理 */}
       <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 flex-1 flex flex-col overflow-hidden border border-gray-800">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-100">演出管理</h2>
+          <h2 className="text-lg font-semibold text-gray-100">宣讲活动管理</h2>
           {selectedSession && (() => {
             const maxRoundNum = rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0;
             let canCreateRound = false;
@@ -355,9 +355,10 @@ export default function BusinessPanel({
               <button
                 onClick={createNewRound}
                 disabled={!canCreateRound || !isAdmin}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-xl font-bold"
+                title="新建演出"
               >
-                新建演出
+                +
               </button>
             );
           })()}
@@ -379,7 +380,7 @@ export default function BusinessPanel({
                 onClick={() => onRoundChange(round)}
               >
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-100">第 {round.round_number} 位演员</span>
+                  <span className="font-medium text-gray-100">第 {round.round_number} 位宣讲员</span>
                   <div className="text-lg font-bold text-blue-400">
                     {round.status === RoundStatus.PERFORMING ? (
                       <svg className="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -454,7 +455,7 @@ export default function BusinessPanel({
                     const label = isPerforming ? '已表演时长' : '演出时长';
                     const color = isPerforming ? '#89c414' : '#c6771b';
                     return (
-                      <span className="px-3 py-1 text-xs" style={{ color }}>
+                      <span className="px-3 py-1 text-sm font-medium" style={{ color }}>
                         {label}：{duration}
                       </span>
                     );
