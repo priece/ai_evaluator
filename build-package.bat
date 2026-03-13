@@ -60,6 +60,7 @@ copy .env.production %PACKAGE_DIR%\
 copy next.config.js %PACKAGE_DIR%\
 copy config.json %PACKAGE_DIR%\
 copy start-production.bat %PACKAGE_DIR%\
+copy remote_access.bat %PACKAGE_DIR%\
 copy ecosystem.config.js %PACKAGE_DIR%\
 copy deploy.md %PACKAGE_DIR%\
 copy database.init.json %PACKAGE_DIR%\data\database.json
