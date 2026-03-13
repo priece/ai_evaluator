@@ -403,7 +403,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
             </button>
           </div>
 
-          <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '225px' }}>
+          <div className="mt-3 flex items-center justify-center bg-[#252525] rounded-lg border border-gray-700 overflow-hidden" style={{ height: '240px' }}>
             <ScreenPreview ref={screenPreviewRef} refreshKey={screenRefreshKey} />
           </div>
           

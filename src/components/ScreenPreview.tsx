@@ -309,10 +309,10 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
     <div className="flex flex-col gap-2">
       {/* 预览窗口 */}
       <div 
-        className="flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-lg border border-gray-700"
+        className="flex-shrink-0 flex items-center justify-center relative overflow-hidden rounded-lg border border-gray-700 w-full h-full"
         style={{
-          width: '400px',
-          height: '225px',
+          height: '240px',
+          aspectRatio: '16 / 9',
           backgroundImage: config?.background ? `url(${config.background}?t=${backgroundTimestamp})` : undefined,
           backgroundSize: '100% 100%',
           backgroundPosition: 'center',

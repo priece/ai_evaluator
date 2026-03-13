@@ -450,9 +450,11 @@ export default function BusinessPanel({
                   {(() => {
                     const duration = getPerformanceDuration(round);
                     if (!duration) return null;
-                    const label = round.status === RoundStatus.PERFORMING ? '已表演时长' : '表演时长';
+                    const isPerforming = round.status === RoundStatus.PERFORMING;
+                    const label = isPerforming ? '已表演时长' : '演出时长';
+                    const color = isPerforming ? '#89c414' : '#c6771b';
                     return (
-                      <span className="px-3 py-1 text-xs text-gray-400">
+                      <span className="px-3 py-1 text-xs" style={{ color }}>
                         {label}：{duration}
                       </span>
                     );
