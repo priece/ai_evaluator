@@ -93,12 +93,12 @@ function writeToFile(logLine: string): void {
 }
 
 function addToMemory(level: string, message: string): void {
-  // 内存日志中使用新的时间戳格式
+  const filteredMessage = message.replace(/[\u4e00-\u9fff]/g, '*');
   const memoryTimestamp = formatMemoryTimestamp();
   const entry: LogEntry = {
     timestamp: memoryTimestamp,
     level,
-    message
+    message: filteredMessage
   };
   
   logState.memoryLogs.push(entry);
