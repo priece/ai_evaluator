@@ -328,7 +328,7 @@ export default function BusinessPanel({
             </div>
             <div className="text-sm text-gray-400 mt-1 flex justify-between">
               <div>
-                <span className="font-medium text-gray-300">当前演出：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
+                <span className="font-medium text-gray-300">当前宣讲轮次：</span>{rounds.length > 0 ? Math.max(...rounds.map(r => r.round_number)) : 0}
               </div>
               <div>
                 <span className="font-medium text-gray-300">创建时间：</span>{formatTime(selectedSession.created_at)}
@@ -338,7 +338,7 @@ export default function BusinessPanel({
         )}
       </div>
 
-      {/* 演出管理 */}
+      {/* 宣讲管理 */}
       <div className="bg-[#1a1a1a] rounded-lg shadow-md p-4 flex-1 flex flex-col overflow-hidden border border-gray-800">
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-100">宣讲活动管理</h2>
@@ -356,7 +356,7 @@ export default function BusinessPanel({
                 onClick={createNewRound}
                 disabled={!canCreateRound || !isAdmin}
                 className="w-8 h-8 flex items-center justify-center bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-xl font-bold"
-                title="新建演出"
+                title="新建宣讲"
               >
                 +
               </button>
@@ -367,7 +367,7 @@ export default function BusinessPanel({
         <div ref={scrollContainerRef} className="flex-1 overflow-auto">
           {rounds.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              {selectedSession ? '暂无演出，请新建演出' : '请先选择场次'}
+              {selectedSession ? '暂无宣讲，请新建宣讲' : '请先选择场次'}
             </div>
           ) : (
             <div className="space-y-3">
@@ -402,7 +402,7 @@ export default function BusinessPanel({
                       disabled={!isAdmin}
                       className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      开始演出
+                      开始宣讲
                     </button>
                   )}
                   {round.status === RoundStatus.PERFORMING && (
@@ -411,7 +411,7 @@ export default function BusinessPanel({
                       disabled={!isAdmin}
                       className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      结束演出
+                      结束宣讲
                     </button>
                   )}
                   {round.status === RoundStatus.PERFORMANCE_ENDED && (
@@ -452,7 +452,7 @@ export default function BusinessPanel({
                     const duration = getPerformanceDuration(round);
                     if (!duration) return null;
                     const isPerforming = round.status === RoundStatus.PERFORMING;
-                    const label = isPerforming ? '已表演时长' : '演出时长';
+                    const label = isPerforming ? '已宣讲时长' : '宣讲时长';
                     const color = isPerforming ? '#89c414' : '#c6771b';
                     return (
                       <span className="px-3 py-1 text-sm font-medium" style={{ color }}>

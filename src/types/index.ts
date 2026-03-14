@@ -40,8 +40,8 @@ export enum RoundStatus {
 
 export const RoundStatusLabels: Record<RoundStatus, string> = {
   [RoundStatus.NOT_STARTED]: '未开始',
-  [RoundStatus.PERFORMING]: '演出中',
-  [RoundStatus.PERFORMANCE_ENDED]: '演出结束',
+  [RoundStatus.PERFORMING]: '宣讲中',
+  [RoundStatus.PERFORMANCE_ENDED]: '宣讲结束',
   [RoundStatus.EVALUATING]: '评估中',
   [RoundStatus.EVALUATED]: '已评估',
   [RoundStatus.ROUND_ENDED]: '已发布'

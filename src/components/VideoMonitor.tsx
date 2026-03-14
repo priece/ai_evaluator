@@ -34,7 +34,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
   const [rotation, setRotation] = useState<number>(0);
   const [showWaveform, setShowWaveform] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
   const playerRef = useRef<any>(null);
   const videoRef = useRef<HTMLDivElement>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -103,6 +103,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
         normalize: true,
         backend: 'WebAudio'
       });
+      wavesurferRef.current.setMuted(true);
       
       wavesurferRef.current.on('error', (err: any) => {
         console.error('WaveSurfer error:', err);
@@ -225,6 +226,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
         controls: true,
         responsive: true,
         fluid: true,
+        muted: true,
         sources: []
       }, function onPlayerReady() {
         console.log('Player ready');
@@ -500,7 +502,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
                 onClick={() => setShowSettings(false)}
                 className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
               >
-                关闭
+                OK
               </button>
             </div>
           </div>

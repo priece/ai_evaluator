@@ -302,7 +302,7 @@ export default function ScreenPage() {
               <div className="flex items-center gap-2">
                 <span className="text-white/80 text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 抬头率：</span>
                 <span className="text-white text-xl font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  {round?.audience_attention !== null && round?.audience_attention !== undefined ? round.audience_attention.toFixed(1) : '--'}
+                  {round?.audience_attention !== null && round?.audience_attention !== undefined ? `${round.audience_attention.toFixed(1)}%` : '--'}
                 </span>
               </div>
               

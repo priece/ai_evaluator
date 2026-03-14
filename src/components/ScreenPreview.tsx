@@ -348,7 +348,7 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                     <div className="flex items-center gap-1">
                       <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 抬头率：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                        {data?.round?.audience_attention !== null && data?.round?.audience_attention !== undefined ? data.round.audience_attention.toFixed(1) : '--'}
+                        {data?.round?.audience_attention !== null && data?.round?.audience_attention !== undefined ? `${data.round.audience_attention.toFixed(1)}%` : '--'}
                       </span>
                     </div>
                     
