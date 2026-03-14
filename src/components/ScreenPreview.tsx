@@ -338,13 +338,13 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                   </div>
                 )}
 
-                {/* 右侧：AI评估详情 */}
-                <div className="flex flex-col items-start justify-center text-white" style={{ width: '55%' }}>
-                  <div className="text-white text-xl font-bold mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>AI评估:</div>
+                {/* 右侧：AI 评估详情 */}
+                <div className="flex flex-col items-start justify-center text-white" style={{ width: '60%' }}>
+                  <div className="text-white text-xl font-bold mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>AI 评估:</div>
                   
                   {/* 子项列表 */}
                   <div className="flex flex-col gap-1 mb-3">
-                    {/* 观众注意力 */}
+                    {/* 抬头率 */}
                     <div className="flex items-center gap-1">
                       <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 抬头率：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
@@ -352,26 +352,26 @@ const ScreenPreview = forwardRef<ScreenPreviewRef, ScreenPreviewProps>(({ refres
                       </span>
                     </div>
                     
-                    {/* 现场氛围（音波分析） */}
-                    <div className="flex items-center gap-1">
-                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（掌声、笑声）：</span>
-                      <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                        {data?.round?.atmosphere !== null && data?.round?.atmosphere !== undefined ? data.round.atmosphere.toFixed(1) : '--'}
-                      </span>
-                    </div>
-                    
-                    {/* 上座率 */}
+                    {/* 在座率 */}
                     <div className="flex items-center gap-1">
                       <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 在座率：</span>
                       <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {data?.round?.occupancy_rate !== null && data?.round?.occupancy_rate !== undefined ? `${data.round.occupancy_rate.toFixed(1)}%` : '--'}
                       </span>
                     </div>
+                    
+                    {/* 现场氛围（掌声、笑声） */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/80 text-sm drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">• 现场氛围（掌声、笑声）：</span>
+                      <span className="text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        {data?.round?.atmosphere !== null && data?.round?.atmosphere !== undefined ? data.round.atmosphere.toFixed(1) : '--'}
+                      </span>
+                    </div>
                   </div>
                   
                   {/* 综合得分 - 较大字体 */}
                   <div className="flex items-center gap-1">
-                    <span className="text-white/90 text-base font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">第 {data?.round?.round_number} 位宣讲员 综合得分：</span>
+                    <span className="text-white/90 text-base font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">第 {data?.round?.round_number} 位宣讲员综合得分：</span>
                     <span className="text-white text-xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]" style={{ textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)' }}>
                       {data?.round?.final_score !== null && data?.round?.final_score !== undefined ? data.round.final_score.toFixed(1) : '--'}
                     </span>

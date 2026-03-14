@@ -80,7 +80,7 @@ export default function EvaluationRecords() {
       {selectedSession && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-4">
-            <h3 className="text-lg font-semibold mb-4">AI评估记录</h3>
+            <h3 className="text-lg font-semibold mb-4">AI 评估记录</h3>
             <div className="max-h-80 overflow-y-auto">
               {regularEvaluations.length > 0 ? (
                 <table className="min-w-full">
@@ -104,7 +104,7 @@ export default function EvaluationRecords() {
                   </tbody>
                 </table>
               ) : (
-                <p className="text-gray-500">暂无AI评估数据</p>
+                <p className="text-gray-500">暂无AI 评估数据</p>
               )}
             </div>
           </div>

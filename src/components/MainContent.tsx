@@ -172,7 +172,7 @@ export default function MainContent({ user, onLogout }: MainContentProps) {
       {/* 顶部导航栏 */}
       <nav className="bg-[#1a1a1a] shadow-md h-14 flex-shrink-0 border-b border-gray-800">
         <div className="h-full px-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-blue-400">AI评委数据采集分析系统</h1>
+          <h1 className="text-xl font-bold text-blue-400">AI 评委数据采集分析系统</h1>
           <div className="flex items-center space-x-4">
             <span className="text-gray-400 text-sm">
               欢迎，{user.username} ({user.role === 'admin' ? '管理员' : '访客'})

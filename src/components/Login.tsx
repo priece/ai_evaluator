@@ -42,7 +42,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
       <div className="bg-[#1a1a1a] rounded-2xl shadow-xl w-full max-w-md p-8 border border-gray-700">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-100">AI评委数据采集分析系统</h1>
+          <h1 className="text-2xl font-bold text-gray-100">AI 评委数据采集分析系统</h1>
           <p className="text-gray-400 mt-2">请登录以继续</p>
         </div>
 

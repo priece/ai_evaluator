@@ -4,8 +4,8 @@ import "./globals.css";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "AI评委服务",
-  description: "AI评委服务系统",
+  title: "AI 评委服务",
+  description: "AI 评委服务系统",
 };
 
 export default function RootLayout({

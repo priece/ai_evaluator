@@ -31,7 +31,7 @@ export interface Round {
   round_end_time: string | null;
   score: number | null;
   submit: number;
-  // AI评估详情
+  // AI 评估详情
   audience_attention: number | null;  // 观众注意力
   atmosphere: number | null;          // 现场氛围（音波分析）
   occupancy_rate: number | null;      // 在座率
@@ -311,13 +311,15 @@ export const endEvaluation = async (roundId: string, score: number): Promise<voi
     round.evaluation_end_time = getLocalTimeString();
     round.score = score;
     
-    // 生成AI评估详情数据
-    // 观众注意力：评估值上下浮动3%
-    round.audience_attention = generateFloatValue(score, 3);
-    // 现场氛围（音波分析）：评估值上下浮动3%
-    round.atmosphere = generateFloatValue(score, 3);
-    // 上座率：98%，上下浮动1%
-    round.occupancy_rate = generateFloatValue(98, 1);
+    // 抬头率：75~90之间随机生成
+    round.audience_attention = Math.round((75 + Math.random() * 15) * 10) / 10;
+    // 在座率：90~100之间随机生成
+    round.occupancy_rate = Math.round((90 + Math.random() * 10) * 10) / 10;
+    // 现场氛围：score先除以10取整，再乘以10，加上随机个位数+随机浮点数
+    const baseAtmosphere = Math.floor(score / 10) * 10;
+    const randomOnes = Math.floor(Math.random() * 10);
+    const randomDecimal = Math.round(Math.random() * 10) / 10;
+    round.atmosphere = Math.round((baseAtmosphere + randomOnes + randomDecimal) * 10) / 10;
     // 综合得分：直接复制score值
     round.final_score = score;
     

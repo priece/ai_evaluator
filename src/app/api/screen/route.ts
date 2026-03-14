@@ -31,7 +31,7 @@ export async function GET() {
         evaluation_start_time: round.evaluation_start_time,
         evaluation_end_time: round.evaluation_end_time,
         round_end_time: round.round_end_time,
-        // AI评估详情
+        // AI 评估详情
         audience_attention: round.audience_attention,
         atmosphere: round.atmosphere,
         occupancy_rate: round.occupancy_rate,
