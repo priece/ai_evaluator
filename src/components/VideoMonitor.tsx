@@ -384,7 +384,7 @@ export default function VideoMonitor({ selectedSession, currentRound, user, onRo
                   playerRef.current.muted(newMuted);
                 }
                 if (wavesurferRef.current) {
-                  wavesurferRef.current.setMute(newMuted);
+                  wavesurferRef.current.setMuted(newMuted);
                 }
               }}
               className={`p-2 rounded-lg transition ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 hover:bg-gray-700'}`}
